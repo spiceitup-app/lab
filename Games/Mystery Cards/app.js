@@ -196,6 +196,16 @@ function makePenalties(){
   const base = Math.max(0, weightedValue(rules.sips));
   const shots = Math.max(0, weightedValue(rules.shots));
 
+  // Basis 0 bedeutet für Mystery Cards vollständig "Keine Strafe".
+  // Multiplikator und Addition werden dann bewusst NICHT angewendet.
+  if(base === 0){
+    return {
+      wrong:{amount:0,shots:0,action:'Keine Strafe'},
+      correct:{amount:0,shots:0,action:'Keine Strafe'},
+      reveal:{amount:0,shots:0,action:'Keine Strafe'}
+    };
+  }
+
   const wrongRule = MYSTERY_PENALTY_FORMULA.wrong;
   const correctRule = MYSTERY_PENALTY_FORMULA.correct;
   const revealRule = MYSTERY_PENALTY_FORMULA.reveal;
