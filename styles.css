@@ -1,0 +1,59 @@
+@font-face { font-family:"Red Hat Display"; src:url("Assets/fonts/RedHatDisplayNormalExtraBold.ttf") format("truetype"); font-style:normal; font-weight:800; font-display:swap; }
+@font-face { font-family:"Red Hat Display"; src:url("Assets/fonts/RedHatDisplayItalicExtraBold.ttf") format("truetype"); font-style:italic; font-weight:800; font-display:swap; }
+@font-face { font-family:"Red Hat Text"; src:url("Assets/fonts/RedHatTextNormalRegular.ttf") format("truetype"); font-style:normal; font-weight:400; font-display:swap; }
+
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; }
+body { min-height:100dvh; overflow-x:hidden; background:#0028ad; color:#fff; font-family:"Red Hat Text",system-ui,sans-serif; -webkit-tap-highlight-color:transparent; }
+
+.app-shell { position:relative; width:100%; min-height:100dvh; overflow:hidden; background:radial-gradient(60.37% 60.37% at 50% 50%, #005FF3 0%, #0046CB 40%, #0028AD 74.58%, #00198C 100%); }
+.app-shell::before { content:""; position:absolute; inset:-20%; z-index:0; background:radial-gradient(60.37% 60.37% at 50% 50%, #005FF3 0%, #0046CB 40%, #0028AD 74.58%, #00198C 100%); }
+
+
+
+.game-header-bg {
+  position:absolute;
+  z-index:1;
+  top:0;
+  left:0;
+  width:100%;
+  height:120px;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.game-header-shape {
+  position:absolute;
+  top:0;
+  left:50%;
+  height:120px;
+  width:auto;
+  min-width:100%;
+  max-width:none;
+  transform:translateX(-50%);
+  display:block;
+}
+
+.topbar { position:relative; z-index:2; width:100%; height:120px; padding:max(18px,env(safe-area-inset-top)) 20px 0; display:grid; grid-template-columns:44px 1fr 44px; align-items:center; gap:12px; }
+.topbar h1 { margin:0; text-align:center; font-family:"Red Hat Display",system-ui,sans-serif; font-size:24px; line-height:1; font-style:italic; font-weight:800; color:#fff; }
+.topbar-spacer { width:44px; height:44px; }
+
+.games-stage { position:relative; z-index:2; min-height:calc(100dvh - 120px); padding:28px 20px max(32px,env(safe-area-inset-bottom)); display:flex; justify-content:center; align-items:flex-start; }
+.games-grid { width:min(520px,100%); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.game-tile { min-width:0; min-height:176px; padding:20px 16px 18px; border-radius:24px; background:#fff; border:1px solid rgb(0 0 0 / 8%); box-shadow:0 14px 36px rgb(0 0 0 / 12%); color:#080829; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; transition:transform 160ms ease, box-shadow 160ms ease; }
+.game-tile:only-child { grid-column:1 / -1; }
+.game-tile:active { transform:scale(.985); }
+.game-tile:focus-visible { outline:3px solid rgb(255 255 255 / 75%); outline-offset:4px; }
+.game-logo-wrap { width:88px; height:88px; display:grid; place-items:center; }
+.game-logo { display:block; width:100%; height:100%; object-fit:contain; }
+.game-name { font-family:"Red Hat Display",system-ui,sans-serif; font-size:20px; line-height:1.05; font-style:italic; font-weight:800; text-align:center; }
+
+@media (min-width:700px) {
+  .topbar { width:min(520px,calc(100vw - 48px)); margin:0 auto; padding-left:0; padding-right:0; }
+  .games-stage { padding-top:36px; }
+}
+
+@media (max-width:420px) {
+  .game-tile { min-height:164px; }
+  .game-logo-wrap { width:78px; height:78px; }
+}
