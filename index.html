@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#00198c" />
+  <title>Spiele</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <div class="game-header-bg" aria-hidden="true">
+      <img class="game-header-shape" src="Assets/game_header.svg" alt="" />
+    </div>
+
+    <header class="topbar">
+      <span class="topbar-spacer" aria-hidden="true"></span>
+      <h1>Spiele</h1>
+      <span class="topbar-spacer" aria-hidden="true"></span>
+    </header>
+
+    <section class="games-stage" aria-label="Spiele auswählen">
+      <div class="games-grid">
+        <!--
+          Neues Spiel hinzufügen:
+          1. Diesen <a class="game-tile">-Block kopieren.
+          2. href, Bild, Titel und aria-label ändern.
+          3. Maximal zwei Kacheln stehen nebeneinander.
+          Ist nur eine Kachel vorhanden, füllt sie automatisch die ganze Breite.
+        -->
+        <a class="game-tile" href="Word Quicky/index.html" aria-label="Word Quicky öffnen">
+          <div class="game-logo-wrap">
+            <img class="game-logo" src="Assets/Word_Quicky_Logo.png" alt="" />
+          </div>
+          <span class="game-name">Word Quicky</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
