@@ -58,6 +58,30 @@ const timerPill = document.querySelector('#timerPill');
 const timerText = document.querySelector('#timerText');
 const nextCardSound = document.querySelector('#nextCardSound');
 
+let audioUnlocked = false;
+
+async function unlockAudio(){
+  if(audioUnlocked || !nextCardSound) return;
+
+  try{
+    const previousVolume = nextCardSound.volume;
+    nextCardSound.volume = 0;
+    nextCardSound.currentTime = 0;
+
+    await nextCardSound.play();
+
+    nextCardSound.pause();
+    nextCardSound.currentTime = 0;
+    nextCardSound.volume = previousVolume || 1;
+    audioUnlocked = true;
+  }catch(_){
+    // Falls iOS den ersten Versuch noch blockiert, wird beim nächsten
+    // direkten Nutzer-Tap erneut versucht.
+    nextCardSound.volume = 1;
+  }
+}
+
+
 const settingsButton = document.querySelector('#settingsButton');
 const settingsSheet = document.querySelector('#settingsSheet');
 const sheetScrim = document.querySelector('#sheetScrim');
@@ -416,6 +440,7 @@ function autoAdvance(){
 }
 
 function startGame(){
+  unlockAudio();
   if(state.started) return;
   state.started = true;
   state.currentData = makeCardData();
@@ -474,6 +499,7 @@ function cancelSwipe(){
 
 let drag = null;
 card.addEventListener('pointerdown',event => {
+  unlockAudio();
   if(!state.started){
     startGame();
     return;
