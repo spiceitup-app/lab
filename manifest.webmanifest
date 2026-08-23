@@ -1,10 +1,24 @@
 {
-  "name": "Spiele",
-  "short_name": "Spiele",
+  "name": "Spice it up! Lab",
+  "short_name": "Spice it up! Lab",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#00198C",
   "theme_color": "#00198C",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "Assets/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "Assets/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
