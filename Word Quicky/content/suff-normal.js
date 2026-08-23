@@ -5,7 +5,7 @@
   weight ist ein relatives Gewicht. Du kannst z. B. 55, 30, 15 oder 0.55, 0.30, 0.15 verwenden.
   Die Werte müssen nicht exakt 100 ergeben, sie werden automatisch relativ zueinander ausgewertet.
 
-  sips  = Strafschlucke
+  sips  = Strafschlücke
   shots = Shots
 */
 window.SUFF_NORMAL = {

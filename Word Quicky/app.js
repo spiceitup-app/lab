@@ -385,7 +385,17 @@ document.addEventListener('keydown',event => { if(event.key==='Escape') closeSet
 
 backToGamesButton?.addEventListener('click', () => {
   const confirmed = window.confirm('Möchtest du das Spiel wirklich verlassen und zurück zu Spiele?');
-  if (confirmed) window.location.href = '../index.html';
+  if (!confirmed) return;
+
+  // Wenn Word Quicky im Spiele-Hub läuft, bleibt die installierte Web-App
+  // im selben Top-Level-Dokument und wir schließen nur die Spielansicht.
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type:'word-quicky:exit' }, window.location.origin);
+    return;
+  }
+
+  // Fallback, falls Word Quicky einmal direkt im Browser geöffnet wird.
+  window.location.href = '../index.html';
 });
 
 renderSettings();

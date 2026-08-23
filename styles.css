@@ -57,3 +57,35 @@ body { min-height:100dvh; overflow-x:hidden; background:#0028ad; color:#fff; fon
   .game-tile { min-height:164px; }
   .game-logo-wrap { width:78px; height:78px; }
 }
+
+
+/* Word Quicky bleibt in derselben installierten Web-App.
+   Dadurch findet kein Top-Level-Seitenwechsel statt. */
+.game-view {
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:none;
+  background:#00198C;
+}
+
+.game-view.is-open {
+  display:block;
+}
+
+.game-view iframe {
+  display:block;
+  width:100%;
+  height:100%;
+  border:0;
+  background:#00198C;
+}
+
+body.game-is-open {
+  overflow:hidden;
+}
+
+body.game-is-open > .app-shell {
+  visibility:hidden;
+  pointer-events:none;
+}

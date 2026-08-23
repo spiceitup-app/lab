@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#00198c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Spiele" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <title>Spiele</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -28,7 +32,7 @@
           3. Maximal zwei Kacheln stehen nebeneinander.
           Ist nur eine Kachel vorhanden, füllt sie automatisch die ganze Breite.
         -->
-        <a class="game-tile" href="Word Quicky/index.html" aria-label="Word Quicky öffnen">
+        <a class="game-tile" href="Word%20Quicky/index.html" id="wordQuickyTile" aria-label="Word Quicky öffnen">
           <div class="game-logo-wrap">
             <img class="game-logo" src="Assets/Word_Quicky_Logo.png" alt="" />
           </div>
@@ -37,5 +41,18 @@
       </div>
     </section>
   </main>
+
+  <section class="game-view" id="gameView" aria-hidden="true">
+    <iframe
+      id="wordQuickyFrame"
+      title="Word Quicky"
+      src="about:blank"
+      data-src="Word%20Quicky/index.html"
+      allow="fullscreen"
+    ></iframe>
+  </section>
+
+  <script src="hub.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>

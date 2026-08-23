@@ -1,7 +1,7 @@
 {
   "name": "Spiele",
   "short_name": "Spiele",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#00198C",
