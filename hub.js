@@ -49,6 +49,13 @@
 
   Object.entries(games).forEach(([key, game]) => {
     game.tile?.addEventListener('click', (event) => {
+      // Beim lokalen Test über file:// kann ein eingebettetes Unterdokument je nach
+      // Browser eingeschränkt sein. Dann verwenden wir eine normale Navigation.
+      // Auf GitHub Pages / in der installierten Web-App bleibt alles im selben App-Fenster.
+      if (window.location.protocol === 'file:') {
+        return;
+      }
+
       event.preventDefault();
       showGame(key);
     });
