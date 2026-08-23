@@ -239,8 +239,21 @@ function formatShots(value){
 }
 function makeSuffResult(){
   const rules = getSuffRules();
-  const sips = weightedValue(rules.sips);
-  const shots = weightedValue(rules.shots);
+  const sips = Math.max(0, weightedValue(rules.sips));
+  const shots = Math.max(0, weightedValue(rules.shots));
+
+  // Wenn die gezogene Suff-Strafe komplett auf 0 liegt,
+  // wird keine 0-Strafe ausgeschrieben.
+  if(sips === 0 && shots === 0){
+    return 'Keine Strafe';
+  }
+
+  // Falls nur ein Shot gezogen wird, vermeiden wir ebenfalls
+  // die unschöne Formulierung "0 Strafschlücke & ...".
+  if(sips === 0 && shots > 0){
+    return formatShots(shots);
+  }
+
   const sipText = formatSips(sips);
   return shots > 0 ? `${sipText} & ${formatShots(shots)}` : sipText;
 }
