@@ -3,10 +3,10 @@
 @font-face { font-family:"Red Hat Text"; src:url("Assets/Fonts/RedHatTextNormalRegular.ttf") format("truetype"); font-style:normal; font-weight:400; font-display:swap; }
 
 * { box-sizing:border-box; }
-html,body { margin:0; min-height:100%; }
-body { min-height:100dvh; overflow-x:hidden; background:#0028ad; color:#fff; font-family:"Red Hat Text",system-ui,sans-serif; -webkit-tap-highlight-color:transparent; }
+html,body { margin:0; width:100%; height:100%; min-height:100%; }
+body { height:100dvh; min-height:100dvh; overflow-x:hidden; background:#0028ad; color:#fff; font-family:"Red Hat Text",system-ui,sans-serif; -webkit-tap-highlight-color:transparent; }
 
-.app-shell { position:relative; width:100%; min-height:100dvh; overflow:hidden; background:radial-gradient(60.37% 60.37% at 50% 50%, #005FF3 0%, #0046CB 40%, #0028AD 74.58%, #00198C 100%); }
+.app-shell { position:relative; width:100%; height:100dvh; min-height:100dvh; overflow:hidden; background:radial-gradient(60.37% 60.37% at 50% 50%, #005FF3 0%, #0046CB 40%, #0028AD 74.58%, #00198C 100%); }
 .app-shell::before { content:""; position:absolute; inset:-20%; z-index:0; background:radial-gradient(60.37% 60.37% at 50% 50%, #005FF3 0%, #0046CB 40%, #0028AD 74.58%, #00198C 100%); }
 
 
@@ -59,21 +59,40 @@ body { min-height:100dvh; overflow-x:hidden; background:#0028ad; color:#fff; fon
 }
 
 
-/* Word Quicky bleibt in derselben installierten Web-App.
-   Dadurch findet kein Top-Level-Seitenwechsel statt. */
-.game-view {
-  position:fixed;
+/* =========================================================
+   SPIELE-HUB / iOS PWA VIEWPORT
+
+   Wichtig für iPhone:
+   - In normalem Safari verwenden wir 100dvh.
+   - In einer installierten PWA verwenden wir bewusst 100vh.
+   - Der Spiele-iframe ist ABSOLUTE statt FIXED, weil WebKit
+     mit fixed + viewport-fit=cover eine bekannte Bottom-Gap-
+     Problematik hat.
+   ========================================================= */
+
+body{
+  position:relative;
+  padding:0;
+}
+
+.game-view{
+  position:absolute;
   inset:0;
   z-index:100;
   display:none;
+  width:100%;
+  height:100dvh;
+  overflow:hidden;
   background:#00198C;
 }
 
-.game-view.is-open {
+.game-view.is-open{
   display:block;
 }
 
-.game-view iframe {
+.game-view iframe{
+  position:absolute;
+  inset:0;
   display:block;
   width:100%;
   height:100%;
@@ -81,90 +100,52 @@ body { min-height:100dvh; overflow-x:hidden; background:#0028ad; color:#fff; fon
   background:#00198C;
 }
 
-body.game-is-open {
+body.game-is-open{
   overflow:hidden;
 }
 
-body.game-is-open > .app-shell {
+body.game-is-open > .app-shell{
   visibility:hidden;
   pointer-events:none;
 }
 
+/*
+  Installed iOS PWA:
+  100vh is intentional here. WebKit currently has standalone
+  viewport bugs around dvh/svh + viewport-fit=cover.
+*/
+@media all and (display-mode: standalone){
+  html,
+  body{
+    width:100%;
+    height:100vh;
+    min-height:100vh;
+    overflow:hidden;
+  }
 
-/* iOS/PWA viewport fix: Hub und Spiel-Iframe bis zum echten unteren Rand */
-html{
-  width:100%;
-  height:100%;
-  min-height:100%;
-  background:#00198c;
-}
-body{
-  width:100%;
-  min-height:100%;
-  min-height:100dvh;
-  margin:0;
-}
-.app-shell{
-  width:100%;
-  min-height:100dvh;
-}
-.game-view{
-  position:fixed;
-  inset:0;
-  width:100vw;
-  height:100dvh;
-  min-height:100dvh;
-}
-.game-view iframe{
-  width:100%;
-  height:100%;
-  min-height:100%;
+  .app-shell{
+    height:100vh;
+    min-height:100vh;
+  }
+
+  .games-stage{
+    min-height:calc(100vh - 120px);
+  }
+
+  .game-view{
+    height:100vh;
+  }
 }
 
-
-/* =========================================================
-   iOS / PWA: untere Lücke entfernen
-
-   Wichtig:
-   Der Spiel-Container bekommt KEINE berechnete 100dvh-Höhe mehr.
-   Stattdessen spannt ihn inset:0 direkt von oben bis unten auf.
-   ========================================================= */
-html,
-body{
-  margin:0;
-  width:100%;
-  min-height:100%;
-  background:radial-gradient(
-    60.37% 60.37% at 50% 50%,
-    #005FF3 0%,
-    #0046CB 40%,
-    #0028AD 74.58%,
-    #00198C 100%
-  );
-}
-
-.game-view{
-  position:fixed !important;
-  top:0 !important;
-  right:0 !important;
-  bottom:0 !important;
-  left:0 !important;
-
-  width:auto !important;
-  height:auto !important;
-  min-height:0 !important;
-
-  overflow:hidden;
-  background:#00198C;
-}
-
-.game-view iframe{
-  position:absolute !important;
-  inset:0 !important;
-  display:block;
-  width:100% !important;
-  height:100% !important;
-  min-height:0 !important;
-  border:0;
-  background:#00198C;
+/* iOS Add-to-Home-Screen fallback for older standalone detection */
+@supports (-webkit-touch-callout:none){
+  @media all and (display-mode: standalone){
+    html,
+    body,
+    .app-shell,
+    .game-view{
+      height:100vh;
+      min-height:100vh;
+    }
+  }
 }
