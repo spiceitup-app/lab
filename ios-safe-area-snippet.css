@@ -1,0 +1,19 @@
+/* iPhone/PWA safe-area fix */
+html,
+body{
+  margin:0;
+  width:100%;
+  min-height:100%;
+  background:#00198C;
+}
+
+body{
+  min-height:100vh;
+  min-height:100dvh;
+}
+
+@supports (padding: env(safe-area-inset-bottom)){
+  body{
+    padding-bottom:0 !important;
+  }
+}
