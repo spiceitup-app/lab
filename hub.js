@@ -15,6 +15,12 @@
       title: 'Drehrad',
       exitType: 'drehrad:exit'
     },
+    '2-dumme-1-gedanke': {
+      tile: document.querySelector('#zweiDummeEinGedankeTile'),
+      src: 'Games/2%20Dumme%201%20Gedanke/index.html',
+      title: '2 Dumme 1 Gedanke',
+      exitType: '2-dumme-1-gedanke:exit'
+    },
     'mystery-cards': {
       tile: document.querySelector('#mysteryCardsTile'),
       src: 'Games/Mystery%20Cards/index.html',
