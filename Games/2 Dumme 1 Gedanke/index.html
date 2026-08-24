@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#00198c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -36,7 +36,7 @@
             <div class="prompt-panel preview-prompt"><span id="previewPromptText"></span></div>
             <div class="result-panel preview-result">
               <div class="result-copy">
-                <span class="result-prefix">Nimm oder verteil</span>
+                <span class="result-prefix">Der Gewinner verteilt</span>
                 <strong id="previewResultAmount"></strong>
               </div>
             </div>
@@ -52,7 +52,7 @@
               <div class="prompt-panel"><span id="promptText">Spicy Intensity</span></div>
               <div class="result-panel">
                 <div class="result-copy">
-                  <span class="result-prefix">Nimm oder verteil</span>
+                  <span class="result-prefix">Der Gewinner verteilt</span>
                   <strong id="resultAmount">2 Strafschlücke</strong>
                 </div>
               </div>
@@ -74,7 +74,7 @@
   </button>
 
   <section class="thought-overlay" id="thoughtOverlay" aria-hidden="true" hidden>
-    <button class="icon-button" id="thoughtClose" type="button" aria-label="Gedankenansicht schließen">
+    <button class="thought-close icon-button" id="thoughtClose" type="button" aria-label="Gedankenansicht schließen">
       <img src="../../Assets/Games/2_Dumme_1_Gedanke_Close.svg" alt="" />
     </button>
 
@@ -86,6 +86,11 @@
 
     <div class="thought-composer-wrap">
       <div class="thought-composer">
+        <div class="thought-instruction">
+          <img src="../../Assets/Games/game_instructions.svg" alt="" />
+          <span>Schreibe deinen Gedanken auf</span>
+        </div>
+
         <textarea
           id="thoughtInput"
           rows="1"
@@ -93,11 +98,6 @@
           placeholder="Dein Gedanke..."
           aria-label="Gedanke eingeben"
         ></textarea>
-
-        <div class="thought-instruction">
-          <img src="../../Assets/Games/game_instructions.svg" alt="" />
-          <span>Schreibe deinen Gedanken auf</span>
-        </div>
       </div>
     </div>
   </section>

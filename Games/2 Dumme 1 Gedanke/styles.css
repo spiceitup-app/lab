@@ -374,47 +374,62 @@ body.thought-is-open{ overflow:hidden; }
 
 
 /* =========================================================
-   iOS / PWA: Spiel selbst bis zum unteren Rand
+   2 Dumme 1 Gedanke – finale iOS-Schreibansicht
    ========================================================= */
-html{
-  width:100%;
-  height:100%;
-  min-height:100%;
-  background:#00198C;
+.thought-overlay{
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  min-height:100% !important;
 }
 
-body{
-  width:100%;
-  height:100%;
-  min-height:100%;
-  margin:0;
-  background:radial-gradient(
-    60.37% 60.37% at 50% 50%,
-    #005FF3 0%,
-    #0046CB 40%,
-    #0028AD 74.58%,
-    #00198C 100%
-  );
-}
-
-.app-shell{
-  width:100%;
-  height:100%;
-  min-height:100%;
-}
-
-/* =========================================================
-   Gedankentext etwas weiter Richtung Eingabe-Insel
-
-   Diesen Wert kannst du selbst ändern:
-   0px   = exakt geometrische Mitte
-   24px  = etwas weiter nach unten
-   40px  = deutlich weiter nach unten
-   ========================================================= */
+/*
+  Feintuning der vertikalen Position des großen Gedankens.
+  Größer = näher an der Eingabe-Insel.
+*/
 :root{
-  --gedanke-text-versatz-nach-unten: 28px;
+  --gedanke-text-versatz-nach-unten: 26px;
 }
 
 .thought-display-rotated{
   top:calc(50% + var(--gedanke-text-versatz-nach-unten)) !important;
+}
+
+
+/* =========================================================
+   iOS / PWA FULLSCREEN FIX – Unterspiel
+   ========================================================= */
+html,
+body{
+  margin:0;
+  width:100%;
+  height:100%;
+  min-height:100%;
+}
+
+body{
+  min-height:100%;
+  background:
+    radial-gradient(
+      60.37% 60.37% at 50% 50%,
+      #005FF3 0%,
+      #0046CB 40%,
+      #0028AD 74.58%,
+      #00198C 100%
+    );
+}
+
+.app-shell{
+  width:100%;
+  min-height:100%;
+}
+
+/* Im Hub übernimmt der iframe die volle Höhe. */
+@media all and (display-mode: standalone){
+  html,
+  body,
+  .app-shell{
+    height:100%;
+    min-height:100%;
+  }
 }
