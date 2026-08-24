@@ -411,6 +411,139 @@ document.addEventListener('keydown',event => {
 
 
 
+
+
+function escapeThoughtHtml(value){
+  return String(value)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+
+function balancedWordLines(words,lineCount){
+  if(lineCount <= 1) return [words.join(' ')];
+  if(lineCount >= words.length) return words.slice();
+
+  const totalChars = words.reduce((sum,word) => sum + word.length,0) + (words.length - lineCount);
+  const target = totalChars / lineCount;
+
+  const lines = [];
+  let current = [];
+  let currentLength = 0;
+  let remainingLines = lineCount;
+
+  words.forEach((word,index) => {
+    const remainingWords = words.length - index;
+    const wordLength = word.length + (current.length ? 1 : 0);
+
+    const mustBreak = current.length && remainingWords === remainingLines;
+    const wouldOvershoot =
+      current.length &&
+      currentLength + wordLength > target &&
+      Math.abs(currentLength - target) <= Math.abs((currentLength + wordLength) - target);
+
+    if((mustBreak || wouldOvershoot) && remainingLines > 1){
+      lines.push(current.join(' '));
+      current = [word];
+      currentLength = word.length;
+      remainingLines -= 1;
+    }else{
+      current.push(word);
+      currentLength += wordLength;
+    }
+  });
+
+  if(current.length) lines.push(current.join(' '));
+  return lines;
+}
+
+function renderThoughtLines(lines){
+  thoughtDisplayText.innerHTML = lines
+    .map(line => `<span class="thought-line">${escapeThoughtHtml(line)}</span>`)
+    .join('');
+}
+
+function maxFontSizeForCurrentLines(rotated,visualWidth,visualHeight){
+  let min = 18;
+  let max = 900;
+  let best = min;
+
+  while(min <= max){
+    const size = Math.floor((min + max) / 2);
+    thoughtDisplayText.style.fontSize = `${size}px`;
+
+    const rect = thoughtDisplayText.getBoundingClientRect();
+    const fits =
+      rect.width <= visualWidth &&
+      rect.height <= visualHeight &&
+      thoughtDisplayText.scrollWidth <= rotated.clientWidth &&
+      thoughtDisplayText.scrollHeight <= rotated.clientHeight;
+
+    if(fits){
+      best = size;
+      min = size + 1;
+    }else{
+      max = size - 1;
+    }
+  }
+
+  return best;
+}
+
+function fitThoughtDisplay(){
+  const display = document.querySelector('.thought-display');
+  const rotated = document.querySelector('.thought-display-rotated');
+  if(!display || !rotated || !thoughtDisplayText || thoughtOverlay.hidden) return;
+
+  const style = getComputedStyle(display);
+  const paddingTop = parseFloat(style.paddingTop) || 0;
+  const paddingRight = parseFloat(style.paddingRight) || 0;
+  const paddingBottom = parseFloat(style.paddingBottom) || 0;
+  const paddingLeft = parseFloat(style.paddingLeft) || 0;
+
+  const visualWidth = Math.max(60,display.clientWidth - paddingLeft - paddingRight);
+  const visualHeight = Math.max(60,display.clientHeight - paddingTop - paddingBottom);
+
+  rotated.style.width = `${visualHeight}px`;
+  rotated.style.height = `${visualWidth}px`;
+
+  const rawText = (thoughtInput?.value || '').trim() || 'Dein Gedanke';
+  const words = rawText.split(/\s+/).filter(Boolean);
+
+  let maxLines = 1;
+  if(words.length >= 3) maxLines = 2;
+  if(words.length >= 5) maxLines = 3;
+  if(words.length >= 8) maxLines = 4;
+  maxLines = Math.min(maxLines,words.length);
+
+  let best = {
+    size:18,
+    lines:[rawText],
+    lineCount:1
+  };
+
+  for(let lineCount = 1; lineCount <= maxLines; lineCount += 1){
+    const lines = balancedWordLines(words,lineCount);
+    renderThoughtLines(lines);
+
+    const size = maxFontSizeForCurrentLines(rotated,visualWidth,visualHeight);
+
+    const improvementNeeded = lineCount === 1 ? 1 : 1.08;
+    const isBetter =
+      size > best.size * improvementNeeded ||
+      (lineCount === 1 && size > best.size);
+
+    if(isBetter){
+      best = {size,lines,lineCount};
+    }
+  }
+
+  renderThoughtLines(best.lines);
+  thoughtDisplayText.style.fontSize = `${best.size}px`;
+}
+
 function resizeThoughtInput(){
   if(!thoughtInput) return;
   thoughtInput.style.height = 'auto';
@@ -418,9 +551,11 @@ function resizeThoughtInput(){
 }
 
 function updateThoughtPreview(){
-  const value = thoughtInput.value.trim();
-  thoughtDisplayText.textContent = value || 'Dein Gedanke';
   resizeThoughtInput();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(fitThoughtDisplay);
+  });
 }
 
 function openThoughtOverlay(){
@@ -431,7 +566,12 @@ function openThoughtOverlay(){
   updateThoughtPreview();
 
   // Fokus erst nach dem Öffnen setzen, damit die mobile Tastatur zuverlässig erscheint.
-  requestAnimationFrame(() => thoughtInput.focus({preventScroll:true}));
+  requestAnimationFrame(() => {
+    fitThoughtDisplay();
+    thoughtInput.focus({preventScroll:true});
+  });
+
+  window.setTimeout(fitThoughtDisplay,180);
 }
 
 function closeThoughtOverlay(){
@@ -444,6 +584,10 @@ function closeThoughtOverlay(){
 thoughtFab?.addEventListener('click',openThoughtOverlay);
 thoughtClose?.addEventListener('click',closeThoughtOverlay);
 thoughtInput?.addEventListener('input',updateThoughtPreview);
+window.addEventListener('resize',() => requestAnimationFrame(fitThoughtDisplay));
+window.addEventListener('orientationchange',() => window.setTimeout(fitThoughtDisplay,120));
+window.visualViewport?.addEventListener('resize',() => requestAnimationFrame(fitThoughtDisplay));
+document.fonts?.ready?.then(() => requestAnimationFrame(fitThoughtDisplay));
 
 backToGamesButton?.addEventListener('click', () => {
   const confirmed = window.confirm('Möchtest du das Spiel wirklich verlassen und zurück zu Spiele?');
