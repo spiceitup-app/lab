@@ -60,60 +60,9 @@ body { height:100dvh; min-height:100dvh; overflow-x:hidden; background:#0028ad; 
 
 
 /* =========================================================
-   SPIELE-HUB / iOS PWA VIEWPORT
-
-   Wichtig für iPhone:
-   - In normalem Safari verwenden wir 100dvh.
-   - In einer installierten PWA verwenden wir bewusst 100vh.
-   - Der Spiele-iframe ist ABSOLUTE statt FIXED, weil WebKit
-     mit fixed + viewport-fit=cover eine bekannte Bottom-Gap-
-     Problematik hat.
+   iOS / PWA – EIN Viewport für die Startseite
+   Diese Logik hat auf der Startseite bereits korrekt funktioniert.
    ========================================================= */
-
-body{
-  position:relative;
-  padding:0;
-}
-
-.game-view{
-  position:absolute;
-  inset:0;
-  z-index:100;
-  display:none;
-  width:100%;
-  height:100dvh;
-  overflow:hidden;
-  background:#00198C;
-}
-
-.game-view.is-open{
-  display:block;
-}
-
-.game-view iframe{
-  position:absolute;
-  inset:0;
-  display:block;
-  width:100%;
-  height:100%;
-  border:0;
-  background:#00198C;
-}
-
-body.game-is-open{
-  overflow:hidden;
-}
-
-body.game-is-open > .app-shell{
-  visibility:hidden;
-  pointer-events:none;
-}
-
-/*
-  Installed iOS PWA:
-  100vh is intentional here. WebKit currently has standalone
-  viewport bugs around dvh/svh + viewport-fit=cover.
-*/
 @media all and (display-mode: standalone){
   html,
   body{
@@ -131,39 +80,4 @@ body.game-is-open > .app-shell{
   .games-stage{
     min-height:calc(100vh - 120px);
   }
-
-  .game-view{
-    height:100vh;
-  }
-}
-
-/* iOS Add-to-Home-Screen fallback for older standalone detection */
-@supports (-webkit-touch-callout:none){
-  @media all and (display-mode: standalone){
-    html,
-    body,
-    .app-shell,
-    .game-view{
-      height:100vh;
-      min-height:100vh;
-    }
-  }
-}
-
-
-/* Universeller Unterseiten-Fix:
-   Der iframe deckt die Host-Fläche inklusive möglicher iOS-Subpixelkante ab. */
-.game-view{
-  overflow:hidden !important;
-  background:#00198C !important;
-}
-
-.game-view iframe{
-  top:0 !important;
-  right:0 !important;
-  bottom:-1px !important;
-  left:0 !important;
-  width:100% !important;
-  height:auto !important;
-  background:#00198C !important;
 }
