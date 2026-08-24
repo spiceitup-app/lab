@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#00198C">
   <title>Drehrad</title>
   <style>
@@ -609,6 +609,27 @@
   <link rel="manifest" href="../../manifest.webmanifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="../../Assets/webicon/app-icon-180.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="../../Assets/webicon/favicon-32.png" />
+
+<style id="ios-pwa-fullscreen-fix">
+html,body{
+  margin:0 !important;
+  width:100% !important;
+  height:100% !important;
+  min-height:100% !important;
+}
+body{
+  min-height:100% !important;
+  background:
+    radial-gradient(
+      60.37% 60.37% at 50% 50%,
+      #005FF3 0%,
+      #0046CB 40%,
+      #0028AD 74.58%,
+      #00198C 100%
+    ) !important;
+}
+</style>
+
 </head>
 <body>
   <main class="app-shell">
