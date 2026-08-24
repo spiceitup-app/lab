@@ -106,6 +106,71 @@
     }
   });
 
+
+  function applyGameViewportFix() {
+    try {
+      const doc = frame.contentDocument;
+      if (!doc || !doc.documentElement) return;
+
+      let style = doc.querySelector('#spice-ios-viewport-fix');
+      if (!style) {
+        style = doc.createElement('style');
+        style.id = 'spice-ios-viewport-fix';
+        style.textContent = `
+          html,
+          body {
+            margin: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100% !important;
+            background: #00198C !important;
+          }
+
+          body {
+            overflow-x: hidden !important;
+          }
+
+          .app-shell {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100% !important;
+            background:
+              radial-gradient(
+                60.37% 60.37% at 50% 50%,
+                #005FF3 0%,
+                #0046CB 40%,
+                #0028AD 74.58%,
+                #00198C 100%
+              ) !important;
+          }
+
+          .game-stage {
+            min-height: calc(100% - 120px) !important;
+          }
+        `;
+        (doc.head || doc.documentElement).appendChild(style);
+      }
+
+      // Direkt zusätzlich setzen, damit auch der iOS-Safe-Area-Bereich
+      // nie auf den weißen Standard-Hintergrund zurückfällt.
+      doc.documentElement.style.setProperty('background', '#00198C', 'important');
+      if (doc.body) {
+        doc.body.style.setProperty('background', '#00198C', 'important');
+      }
+    } catch (_) {
+      // Same-origin ist im normalen Hub gegeben.
+      // Bei file:// oder restriktiven Browsern bleibt die Spiel-CSS aktiv.
+    }
+  }
+
+  frame?.addEventListener('load', () => {
+    applyGameViewportFix();
+
+    // iOS kann nach dem ersten Layout noch einmal die Viewport-Höhe ändern.
+    requestAnimationFrame(applyGameViewportFix);
+    window.setTimeout(applyGameViewportFix, 120);
+  });
+
   window.addEventListener('popstate', () => {
     const key = window.location.hash.replace(/^#/, '');
 

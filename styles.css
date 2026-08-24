@@ -149,3 +149,21 @@ body.game-is-open > .app-shell{
     }
   }
 }
+
+
+/* Universeller Unterseiten-Fix:
+   Der iframe deckt die Host-Fläche inklusive möglicher iOS-Subpixelkante ab. */
+.game-view{
+  overflow:hidden !important;
+  background:#00198C !important;
+}
+
+.game-view iframe{
+  top:0 !important;
+  right:0 !important;
+  bottom:-1px !important;
+  left:0 !important;
+  width:100% !important;
+  height:auto !important;
+  background:#00198C !important;
+}
