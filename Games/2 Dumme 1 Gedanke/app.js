@@ -66,6 +66,8 @@ const thoughtOverlay = document.querySelector('#thoughtOverlay');
 const thoughtClose = document.querySelector('#thoughtClose');
 const thoughtInput = document.querySelector('#thoughtInput');
 const thoughtDisplayText = document.querySelector('#thoughtDisplayText');
+const thoughtClearButton = document.querySelector('#thoughtClearButton');
+const thoughtTrashIcon = document.querySelector('#thoughtTrashIcon');
 
 
 function gradient(level){ return `linear-gradient(180deg, ${level.top}, ${level.bottom})`; }
@@ -268,7 +270,20 @@ function makeCardData(){
   return { prompt:choosePrompt(), result:makeSuffResult() };
 }
 
+
+function updateThoughtTrashIcon(){
+  if(!thoughtTrashIcon) return;
+
+  const level = [1,2,3,4].includes(Number(state.spicyLevel))
+    ? Number(state.spicyLevel)
+    : 1;
+
+  thoughtTrashIcon.src =
+    `../../Assets/Games/2_Dumme_1_Gedanke_Trash_Level_${level}.svg`;
+}
+
 function applyCardColors(){
+  updateThoughtTrashIcon();
   const spicy = getLevel('spicy',state.spicyLevel);
   const suff = getLevel('suff',state.suffLevel);
   document.documentElement.style.setProperty('--spicy-top',spicy.top);
@@ -584,6 +599,12 @@ function closeThoughtOverlay(){
 thoughtFab?.addEventListener('click',openThoughtOverlay);
 thoughtClose?.addEventListener('click',closeThoughtOverlay);
 thoughtInput?.addEventListener('input',updateThoughtPreview);
+
+thoughtClearButton?.addEventListener('click',() => {
+  thoughtInput.value = '';
+  updateThoughtPreview();
+  thoughtInput.focus({preventScroll:true});
+});
 window.addEventListener('resize',() => requestAnimationFrame(fitThoughtDisplay));
 window.addEventListener('orientationchange',() => window.setTimeout(fitThoughtDisplay,120));
 window.visualViewport?.addEventListener('resize',() => requestAnimationFrame(fitThoughtDisplay));

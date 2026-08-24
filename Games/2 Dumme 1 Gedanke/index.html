@@ -86,13 +86,19 @@
 
     <div class="thought-composer-wrap">
       <div class="thought-composer">
-        <textarea
-          id="thoughtInput"
-          rows="1"
-          maxlength="220"
-          placeholder="Dein Gedanke..."
-          aria-label="Gedanke eingeben"
-        ></textarea>
+        <div class="thought-input-row">
+          <textarea
+            id="thoughtInput"
+            rows="1"
+            maxlength="220"
+            placeholder="Dein Gedanke..."
+            aria-label="Gedanke eingeben"
+          ></textarea>
+
+          <button class="thought-clear-button" id="thoughtClearButton" type="button" aria-label="Gedanken löschen">
+            <img id="thoughtTrashIcon" src="../../Assets/Games/2_Dumme_1_Gedanke_Trash_Level_1.svg" alt="" />
+          </button>
+        </div>
 
         <div class="thought-instruction">
           <img src="../../Assets/Games/game_instructions.svg" alt="" />

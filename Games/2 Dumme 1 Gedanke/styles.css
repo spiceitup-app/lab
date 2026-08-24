@@ -414,3 +414,55 @@ body.thought-is-open{ overflow:hidden; }
   top:calc(50% + var(--gedanke-text-versatz-nach-unten)) !important;
 }
 
+
+
+/* Löschen-Button direkt neben dem Gedankenfeld */
+.thought-input-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 48px;
+  gap:10px;
+  align-items:stretch;
+}
+.thought-input-row textarea{ min-width:0; }
+
+.thought-clear-button{
+  width:48px;
+  min-width:48px;
+  height:54px;
+  padding:0;
+  border:1.5px solid color-mix(in srgb,var(--spicy-bottom) 20%,#c8d0dc);
+  border-radius:17px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  cursor:pointer;
+}
+.thought-clear-button:active{ transform:scale(.97); }
+.thought-clear-button img{
+  width:22px;
+  height:22px;
+  display:block;
+  object-fit:contain;
+}
+
+
+/* Dynamisches Trash-SVG:
+   Das SVG wird inline geladen und übernimmt dadurch zuverlässig currentColor. */
+.thought-clear-button{
+  color:var(--spicy-bottom);
+}
+
+.thought-trash-icon{
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  color:inherit;
+}
+
+.thought-trash-icon svg{
+  width:22px;
+  height:22px;
+  display:block;
+  overflow:visible;
+}
