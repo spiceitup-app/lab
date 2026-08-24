@@ -23,11 +23,15 @@ const savedSpicy = Number(localStorage.getItem('mysteryCards.spicyLevel'));
 const savedSuff = Number(localStorage.getItem('mysteryCards.suffLevel'));
 const savedExperimental = localStorage.getItem('mysteryCards.experimentalSuff');
 const savedMinutes = Number(localStorage.getItem('mysteryCards.roundMinutes'));
+const savedDirectness = Number(localStorage.getItem('mysteryCards.directness'));
+const savedSpicyCards = localStorage.getItem('mysteryCards.spicyCards');
 
 const state = {
   spicyLevel:[1,2,3].includes(savedSpicy) ? savedSpicy : 1,
   suffLevel:[1,2,3,4].includes(savedSuff) ? savedSuff : 1,
   experimentalSuff:savedExperimental === 'true',
+  directness:[0,1,2].includes(savedDirectness) ? savedDirectness : 0,
+  spicyCards:savedSpicyCards === 'true',
   roundMinutes:Number.isFinite(savedMinutes) && savedMinutes >= 1 && savedMinutes <= 15 ? savedMinutes : 4,
   started:false,
   currentData:null,
@@ -49,6 +53,7 @@ const promptPanel = document.querySelector('#promptPanel');
 const secretState = document.querySelector('#secretState');
 const revealedState = document.querySelector('#revealedState');
 const promptText = document.querySelector('#promptText');
+const spicyCallBadge = document.querySelector('#spicyCallBadge');
 const wrongGuessPenalty = document.querySelector('#wrongGuessPenalty');
 const correctGuessPenalty = document.querySelector('#correctGuessPenalty');
 const revealPenalty = document.querySelector('#revealPenalty');
@@ -91,6 +96,9 @@ const suffLevels = document.querySelector('#suffLevels');
 const spicySummary = document.querySelector('#spicySummary');
 const suffSummary = document.querySelector('#suffSummary');
 const experimentalSuffToggle = document.querySelector('#experimentalSuffToggle');
+const directnessLevels = document.querySelector('#directnessLevels');
+const directnessExample = document.querySelector('#directnessExample');
+const spicyCardsToggle = document.querySelector('#spicyCardsToggle');
 const timerMinus = document.querySelector('#timerMinus');
 const timerPlus = document.querySelector('#timerPlus');
 const timerSettingValue = document.querySelector('#timerSettingValue');
@@ -140,21 +148,81 @@ function getPromptPool(level){
   if(level === 3) return window.MYSTERY_SPICY_LEVEL_3 || [];
   return [];
 }
+
+/*
+  Neue Karten können so gepflegt werden:
+
+  {
+    text: "Welche zwei Mitspieler ...?",
+    beziehungskiller: 1,
+    spiceCall: true
+  }
+
+  Bestehende reine Strings bleiben weiterhin gültig.
+  Ein String entspricht automatisch:
+  beziehungskiller: 0
+  spiceCall: false
+*/
+function normalizePromptItem(item){
+  if(typeof item === 'string'){
+    const text = item.trim();
+    return text ? {text,beziehungskiller:0,spiceCall:false} : null;
+  }
+
+  if(!item || typeof item !== 'object') return null;
+
+  const text = typeof item.text === 'string' ? item.text.trim() : '';
+  if(!text) return null;
+
+  const rawKiller = Number(item.beziehungskiller);
+  const beziehungskiller = [1,2].includes(rawKiller) ? rawKiller : 0;
+
+  return {
+    text,
+    beziehungskiller,
+    spiceCall:item.spiceCall === true
+  };
+}
+
+function promptAllowed(item){
+  // Direktheit:
+  // 0 ("Aus") = Beziehungskiller 0
+  // 1 ("Würzig") = Beziehungskiller 0 + 1
+  // 2 ("Beziehungskiller") = Beziehungskiller 0 + 1 + 2
+  if(item.beziehungskiller > state.directness) return false;
+
+  // Spicy Cards filtert keine Karten mehr.
+  // Der Toggle steuert ausschließlich die sichtbare Markierung beim Aufdecken.
+  return true;
+}
+
 function promptCandidates(){
   return (SPICY_MIX[state.spicyLevel] || SPICY_MIX[1])
     .map(([level,weight]) => ({
-      level,weight,
-      items:getPromptPool(level).filter(item => typeof item === 'string' && item.trim())
+      level,
+      weight,
+      items:getPromptPool(level)
+        .map(normalizePromptItem)
+        .filter(Boolean)
+        .filter(promptAllowed)
     }))
     .filter(group => group.items.length);
 }
+
+function promptKey(item){
+  return item.text;
+}
+
 function choosePrompt(){
   const groups = promptCandidates();
-  if(!groups.length) return 'Mystery Card';
+  if(!groups.length) return {text:'Keine passende Mystery Card verfügbar',spiceCall:false};
 
   const blocked = new Set(state.recentPrompts);
   const availableGroups = groups
-    .map(group => ({...group,available:group.items.filter(item => !blocked.has(item))}))
+    .map(group => ({
+      ...group,
+      available:group.items.filter(item => !blocked.has(promptKey(item)))
+    }))
     .filter(group => group.available.length);
 
   let chosen;
@@ -163,17 +231,29 @@ function choosePrompt(){
     const group = availableGroups.find(item => item.level === chosenLevel) || availableGroups[0];
     chosen = group.available[Math.floor(Math.random()*group.available.length)];
   } else {
-    const all = [...new Set(groups.flatMap(group => group.items))];
-    const oldest = Math.min(...all.map(item => state.promptLastSeen.get(item) ?? -Infinity));
-    const leastRecent = all.filter(item => (state.promptLastSeen.get(item) ?? -Infinity) === oldest);
+    const allByText = new Map();
+    groups.flatMap(group => group.items).forEach(item => allByText.set(promptKey(item),item));
+    const all = [...allByText.values()];
+
+    const oldest = Math.min(...all.map(item => state.promptLastSeen.get(promptKey(item)) ?? -Infinity));
+    const leastRecent = all.filter(item => (state.promptLastSeen.get(promptKey(item)) ?? -Infinity) === oldest);
     chosen = leastRecent[Math.floor(Math.random()*leastRecent.length)];
   }
 
+  const key = promptKey(chosen);
   state.promptSequence += 1;
-  state.promptLastSeen.set(chosen,state.promptSequence);
-  state.recentPrompts.push(chosen);
+  state.promptLastSeen.set(key,state.promptSequence);
+  state.recentPrompts.push(key);
   if(state.recentPrompts.length > RECENT_PROMPT_LIMIT) state.recentPrompts.shift();
-  return chosen;
+
+  return {text:chosen.text,spiceCall:chosen.spiceCall === true};
+}
+
+function promptTextValue(prompt){
+  return prompt && typeof prompt === 'object' ? (prompt.text || '') : String(prompt || '');
+}
+function promptIsSpicyCall(prompt){
+  return Boolean(prompt && typeof prompt === 'object' && prompt.spiceCall === true);
 }
 
 function formatSips(value){
@@ -285,7 +365,8 @@ function renderPenaltyValue(element,data){
 }
 function renderCurrentCard(){
   if(!state.currentData) return;
-  promptText.textContent = state.currentData.prompt;
+  promptText.textContent = promptTextValue(state.currentData.prompt);
+  spicyCallBadge.hidden = !(state.spicyCards && promptIsSpicyCall(state.currentData.prompt));
   renderPenaltyValue(wrongGuessPenalty,state.currentData.penalties.wrong);
   renderPenaltyValue(correctGuessPenalty,state.currentData.penalties.correct);
   renderPenaltyValue(revealPenalty,state.currentData.penalties.reveal);
@@ -361,6 +442,20 @@ function renderSettings(){
   suffSummary.querySelector('span').textContent = suffDescription();
 
   experimentalSuffToggle.checked = state.experimentalSuff;
+  spicyCardsToggle.checked = state.spicyCards;
+
+  directnessLevels.querySelectorAll('[data-directness]').forEach(button => {
+    button.classList.toggle('is-active',Number(button.dataset.directness) === state.directness);
+    button.setAttribute('aria-pressed',String(Number(button.dataset.directness) === state.directness));
+  });
+
+  const directnessExamples = {
+    0:'Welche zwei Mitspieler wären das chaotischste WG-Duo?',
+    1:'Welche zwei Mitspieler würden sich aus Versehen verloben?',
+    2:'Welche zwei Mitspieler sollten gemeinsam Sex haben?'
+  };
+  directnessExample.textContent = directnessExamples[state.directness];
+
   timerSettingValue.textContent = state.roundMinutes;
 }
 function selectLevel(kind,id){
@@ -577,6 +672,43 @@ function closeSettings(){
 settingsButton.addEventListener('click',openSettings);
 doneButton.addEventListener('click',closeSettings);
 sheetScrim.addEventListener('click',closeSettings);
+
+
+function refreshPromptsAfterFilterChange(){
+  // Alte Repeat-Historie darf die neu eingeschränkte Auswahl nicht unnötig blockieren.
+  state.recentPrompts = [];
+
+  if(!state.started) return;
+
+  state.currentData.prompt = choosePrompt();
+  state.nextData.prompt = choosePrompt();
+  hidePrompt();
+  renderCurrentCard();
+  renderPreviewCard();
+}
+
+directnessLevels.addEventListener('click',event => {
+  const button = event.target.closest('[data-directness]');
+  if(!button) return;
+
+  const value = Number(button.dataset.directness);
+  if(![0,1,2].includes(value) || value === state.directness) return;
+
+  state.directness = value;
+  localStorage.setItem('mysteryCards.directness',String(value));
+  renderSettings();
+  refreshPromptsAfterFilterChange();
+});
+
+spicyCardsToggle.addEventListener('change',() => {
+  state.spicyCards = spicyCardsToggle.checked;
+  localStorage.setItem('mysteryCards.spicyCards',String(state.spicyCards));
+  renderSettings();
+
+  // Keine Karte wird neu gezogen oder herausgefiltert.
+  // Nur der sichtbare "Spicy Call"-Hinweis wird an/ausgeschaltet.
+  if(state.started) renderCurrentCard();
+});
 
 experimentalSuffToggle.addEventListener('change',() => {
   state.experimentalSuff = experimentalSuffToggle.checked;

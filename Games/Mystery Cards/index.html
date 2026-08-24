@@ -67,6 +67,7 @@
                 </div>
                 <div class="revealed-state" id="revealedState" hidden>
                   <span id="promptText"></span>
+                  <span class="spicy-call-badge" id="spicyCallBadge" hidden>Spicy Call !</span>
                 </div>
               </div>
 
@@ -136,7 +137,7 @@
 
       <div class="setting-card timer-setting-card">
         <div class="setting-title-row timer-title-row">
-<h2>Zeit pro Karte</h2>
+          <h2>Zeit pro Karte</h2>
         </div>
         <div class="timer-stepper" aria-label="Zeit pro Karte einstellen">
           <button id="timerMinus" type="button" aria-label="Eine Minute weniger">−</button>
@@ -149,6 +150,32 @@
         <div class="timer-summary">
           Nach Ablauf verschwindet die Karte automatisch. Die Lösung wird nicht mehr gezeigt.
         </div>
+      </div>
+
+      <div class="setting-card directness-setting-card">
+        <div class="setting-title-row">
+          <h2>Direktheit</h2>
+        </div>
+        <div class="directness-grid" id="directnessLevels" aria-label="Direktheit einstellen">
+          <button type="button" class="directness-button" data-directness="0">Aus</button>
+          <button type="button" class="directness-button" data-directness="1">Würzig</button>
+          <button type="button" class="directness-button" data-directness="2">Beziehungskiller</button>
+        </div>
+        <div class="directness-example">
+          <strong>Beispiel</strong>
+          <span id="directnessExample">Welche zwei Mitspieler wären das chaotischste WG-Duo?</span>
+        </div>
+      </div>
+
+      <div class="setting-card spicy-cards-setting-card">
+        <label class="experimental-toggle">
+          <span class="toggle-copy">
+            <strong>Spicy Cards</strong>
+            <span>Markiert Karten, bei denen bewusst ein potenziell spicy Match gewählt werden soll.</span>
+          </span>
+          <input id="spicyCardsToggle" type="checkbox" />
+          <span class="toggle-control" aria-hidden="true"></span>
+        </label>
       </div>
     </div>
 

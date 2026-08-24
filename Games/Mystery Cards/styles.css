@@ -483,6 +483,69 @@ button{font:inherit}
 .experimental-toggle input:checked + .toggle-control{background:#14C300}
 .experimental-toggle input:checked + .toggle-control::after{transform:translateX(20px)}
 
+
+
+/* Mystery-Cards-Filter: Direktheit + Spicy Cards */
+.directness-setting-card .setting-title-row{
+  margin-bottom:12px;
+}
+.directness-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.directness-button{
+  min-width:0;
+  height:54px;
+  padding:0 6px;
+  border:2px solid #D7DEE8;
+  border-radius:15px;
+  background:#fff;
+  color:#080829;
+  font-family:"Red Hat Text",system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.05;
+  font-weight:700;
+  text-align:center;
+  cursor:pointer;
+  overflow-wrap:anywhere;
+  transition:border-color 160ms ease,background 160ms ease,color 160ms ease,transform 120ms ease;
+}
+.directness-button:active{transform:scale(.98)}
+.directness-button.is-active{
+  border-color:#14C300;
+  background:#14C300;
+  color:#fff;
+}
+.directness-example{
+  margin-top:12px;
+  min-height:74px;
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  border-radius:16px;
+  background:#F3F6FA;
+  color:#080829;
+}
+.directness-example strong{
+  font-family:"Red Hat Text",system-ui,sans-serif;
+  font-size:13px;
+  line-height:1;
+  font-weight:700;
+  color:#626B7B;
+}
+.directness-example span{
+  margin-top:6px;
+  font-size:15px;
+  line-height:1.25;
+  font-weight:400;
+}
+.spicy-cards-setting-card{
+  padding-top:14px;
+  padding-bottom:14px;
+}
+
 .timer-title-row{margin-bottom:10px;gap:0}
 .timer-stepper{
   height:66px;
@@ -558,4 +621,31 @@ button{font:inherit}
   .card-stack{width:min(300px,calc(100vw - 48px));aspect-ratio:332/464}
   .timer-pill{margin-bottom:8px}
   .instruction-row{margin-top:12px}
+}
+
+
+/* Spicy Call Badge */
+.revealed-state{
+  grid-auto-flow:row;
+  align-content:center;
+  justify-items:center;
+}
+.spicy-call-badge[hidden]{
+  display:none !important;
+}
+.spicy-call-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:10px;
+  padding:6px 11px;
+  border-radius:999px;
+  background:#fff;
+  color:var(--spicy-bottom);
+  font-family:"Red Hat Text",system-ui,sans-serif;
+  font-size:12px;
+  line-height:1;
+  font-weight:800;
+  white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.10);
 }
