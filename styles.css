@@ -120,3 +120,51 @@ body{
   height:100%;
   min-height:100%;
 }
+
+
+/* =========================================================
+   iOS / PWA: untere Lücke entfernen
+
+   Wichtig:
+   Der Spiel-Container bekommt KEINE berechnete 100dvh-Höhe mehr.
+   Stattdessen spannt ihn inset:0 direkt von oben bis unten auf.
+   ========================================================= */
+html,
+body{
+  margin:0;
+  width:100%;
+  min-height:100%;
+  background:radial-gradient(
+    60.37% 60.37% at 50% 50%,
+    #005FF3 0%,
+    #0046CB 40%,
+    #0028AD 74.58%,
+    #00198C 100%
+  );
+}
+
+.game-view{
+  position:fixed !important;
+  top:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  left:0 !important;
+
+  width:auto !important;
+  height:auto !important;
+  min-height:0 !important;
+
+  overflow:hidden;
+  background:#00198C;
+}
+
+.game-view iframe{
+  position:absolute !important;
+  inset:0 !important;
+  display:block;
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  border:0;
+  background:#00198C;
+}
