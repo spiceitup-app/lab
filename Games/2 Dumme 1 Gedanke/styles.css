@@ -371,3 +371,50 @@ body.thought-is-open{ overflow:hidden; }
   display:block;
   white-space:nowrap;
 }
+
+
+/* =========================================================
+   iOS / PWA: Spiel selbst bis zum unteren Rand
+   ========================================================= */
+html{
+  width:100%;
+  height:100%;
+  min-height:100%;
+  background:#00198C;
+}
+
+body{
+  width:100%;
+  height:100%;
+  min-height:100%;
+  margin:0;
+  background:radial-gradient(
+    60.37% 60.37% at 50% 50%,
+    #005FF3 0%,
+    #0046CB 40%,
+    #0028AD 74.58%,
+    #00198C 100%
+  );
+}
+
+.app-shell{
+  width:100%;
+  height:100%;
+  min-height:100%;
+}
+
+/* =========================================================
+   Gedankentext etwas weiter Richtung Eingabe-Insel
+
+   Diesen Wert kannst du selbst ändern:
+   0px   = exakt geometrische Mitte
+   24px  = etwas weiter nach unten
+   40px  = deutlich weiter nach unten
+   ========================================================= */
+:root{
+  --gedanke-text-versatz-nach-unten: 28px;
+}
+
+.thought-display-rotated{
+  top:calc(50% + var(--gedanke-text-versatz-nach-unten)) !important;
+}
