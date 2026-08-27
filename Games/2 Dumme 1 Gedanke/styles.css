@@ -446,23 +446,291 @@ body.thought-is-open{ overflow:hidden; }
 }
 
 
-/* Dynamisches Trash-SVG:
-   Das SVG wird inline geladen und übernimmt dadurch zuverlässig currentColor. */
-.thought-clear-button{
-  color:var(--spicy-bottom);
+/* =========================================================
+   TEAMFARBE – unabhängig von Spicy Intensity
+   Grau, bis eine Farbe gewählt wurde.
+   ========================================================= */
+:root{
+  --team-color:#6B7280;
+  --team-color-soft:color-mix(in srgb,var(--team-color) 7%,#fff);
 }
 
-.thought-trash-icon{
-  width:22px;
-  height:22px;
+.thought-overlay{
+  --thought-island-bg:var(--team-color-soft) !important;
+}
+
+.thought-display-rotated #thoughtDisplayText{
+  color:var(--team-color) !important;
+  font-style:normal !important;
+  font-weight:900 !important;
+}
+
+.thought-composer{
+  background:var(--team-color-soft) !important;
+  border-color:color-mix(in srgb,var(--team-color) 16%,#dfe5ec) !important;
+}
+
+.thought-composer textarea{
+  border-color:color-mix(in srgb,var(--team-color) 22%,#c8d0dc) !important;
+}
+
+.thought-composer textarea:focus{
+  border-color:var(--team-color) !important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--team-color) 13%,transparent) !important;
+}
+
+.thought-clear-button{
+  border-color:color-mix(in srgb,var(--team-color) 22%,#c8d0dc) !important;
+}
+
+.team-color-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:10px;
+}
+.team-color-option{
+  position:relative;
+  aspect-ratio:1;
+  min-width:0;
+  border:3px solid #fff;
+  border-radius:50%;
+  background:var(--swatch,#6B7280);
+  box-shadow:0 0 0 1px rgba(0,0,40,.12);
+  cursor:pointer;
+}
+.team-color-option.is-active::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border:3px solid #fff;
+  border-radius:50%;
+  box-shadow:0 0 0 2px #000028;
+}
+
+.team-color-first-modal{
+  position:absolute;
+  inset:0;
+  z-index:8;
   display:grid;
   place-items:center;
-  color:inherit;
+  padding:24px;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.team-color-first-modal[hidden]{display:none !important;}
+.team-color-first-card{
+  width:min(420px,100%);
+  padding:22px;
+  border-radius:28px;
+  background:#fff;
+  box-shadow:0 18px 60px rgba(0,0,40,.18);
+  text-align:center;
+}
+.team-color-first-card h2{
+  margin:0;
+  color:#000028;
+  font-family:"Red Hat Display",system-ui,sans-serif;
+  font-size:24px;
+  line-height:1.1;
+  font-weight:800;
+}
+.team-color-first-card p{
+  margin:8px 0 18px;
+  color:#667085;
+  font-family:"Red Hat Text",system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.35;
 }
 
-.thought-trash-icon svg{
-  width:22px;
-  height:22px;
-  display:block;
-  overflow:visible;
+
+/* Aktuelle 8 Teamfarben */
+.team-color-option[data-team-color="#FFA600"]{--swatch:#FFA600}
+.team-color-option[data-team-color="#F50800"]{--swatch:#F50800}
+.team-color-option[data-team-color="#F500D4"]{--swatch:#F500D4}
+.team-color-option[data-team-color="#8717FF"]{--swatch:#8717FF}
+.team-color-option[data-team-color="#0032F9"]{--swatch:#0032F9}
+.team-color-option[data-team-color="#00B2FF"]{--swatch:#00B2FF}
+.team-color-option[data-team-color="#00CD4E"]{--swatch:#00CD4E}
+.team-color-option[data-team-color="#1E2127"]{--swatch:#1E2127}
+
+
+/* Teamfarben: 4 Farben pro Reihe */
+.team-color-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+
+
+/* Teamfarben kompakter darstellen */
+.team-color-grid{
+  grid-template-columns:repeat(4,44px) !important;
+  justify-content:center;
+  gap:12px !important;
+}
+
+.team-color-option{
+  width:44px !important;
+  height:44px !important;
+  aspect-ratio:auto !important;
+  border-radius:50% !important;
+  padding:0 !important;
+}
+
+
+/* Teamfarben – optisch an die restlichen Settings angepasst */
+.team-color-setting-card{
+  padding-top:18px;
+  padding-bottom:18px;
+}
+
+.team-color-grid{
+  grid-template-columns:repeat(4,54px) !important;
+  justify-content:center;
+  align-items:center;
+  column-gap:16px !important;
+  row-gap:14px !important;
+  margin-top:12px;
+}
+
+.team-color-option{
+  width:54px !important;
+  height:54px !important;
+  aspect-ratio:auto !important;
+  padding:0 !important;
+  border-radius:18px !important;
+  border:3px solid #fff !important;
+  box-shadow:
+    0 0 0 1px rgba(0,0,40,.10),
+    0 5px 14px rgba(0,0,40,.10) !important;
+  transition:transform .14s ease, box-shadow .14s ease;
+}
+
+.team-color-option:active{
+  transform:scale(.96);
+}
+
+.team-color-option.is-active{
+  box-shadow:
+    0 0 0 3px #000028,
+    0 6px 16px rgba(0,0,40,.14) !important;
+}
+
+.team-color-option.is-active::after{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border:2px solid rgba(255,255,255,.95);
+  border-radius:11px;
+  box-shadow:none;
+}
+
+/* Im ersten Auswahl-Popup etwas großzügiger, aber nicht riesig */
+.team-color-first-card .team-color-grid{
+  margin-top:16px;
+  column-gap:16px !important;
+  row-gap:16px !important;
+}
+
+
+/* Teamfarben – breitere Farbkacheln, cleaner Active-State */
+.team-color-grid{
+  grid-template-columns:repeat(4,64px) !important;
+  justify-content:center;
+  column-gap:14px !important;
+  row-gap:14px !important;
+}
+
+.team-color-option{
+  width:64px !important;
+  height:48px !important;
+  aspect-ratio:auto !important;
+  border-radius:16px !important;
+  border:0 !important;
+  box-shadow:0 4px 12px rgba(0,0,40,.10) !important;
+}
+
+.team-color-option.is-active{
+  outline:3px solid #000028 !important;
+  outline-offset:3px !important;
+  box-shadow:0 5px 14px rgba(0,0,40,.14) !important;
+}
+
+.team-color-option.is-active::after{
+  content:none !important;
+}
+
+
+/* Teamfarben – nutzt die verfügbare Breite sauber aus */
+.team-color-setting-card .team-color-grid,
+.team-color-first-card .team-color-grid{
+  width:100%;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  justify-content:stretch !important;
+  column-gap:10px !important;
+  row-gap:10px !important;
+  margin-top:12px;
+}
+
+.team-color-setting-card .team-color-option,
+.team-color-first-card .team-color-option{
+  width:100% !important;
+  height:54px !important;
+  min-width:0 !important;
+  border-radius:16px !important;
+  border:0 !important;
+  outline:none !important;
+  box-shadow:0 4px 12px rgba(0,0,40,.10) !important;
+}
+
+.team-color-setting-card .team-color-option.is-active,
+.team-color-first-card .team-color-option.is-active{
+  box-shadow:
+    0 0 0 3px #000028,
+    0 5px 14px rgba(0,0,40,.14) !important;
+}
+
+.team-color-setting-card .team-color-option.is-active::after,
+.team-color-first-card .team-color-option.is-active::after{
+  content:none !important;
+}
+
+/* Das First-Open-Popup darf die Auswahl breit und ruhig präsentieren */
+.team-color-first-card{
+  width:min(460px,calc(100% - 8px)) !important;
+  padding:22px 20px 20px !important;
+}
+
+.team-color-first-card .team-color-grid{
+  margin-top:16px;
+}
+
+/* Auf schmaleren Geräten bleiben die Kacheln breit, aber nicht zu hoch */
+@media (max-width:390px){
+  .team-color-setting-card .team-color-grid,
+  .team-color-first-card .team-color-grid{
+    column-gap:8px !important;
+    row-gap:9px !important;
+  }
+
+  .team-color-setting-card .team-color-option,
+  .team-color-first-card .team-color-option{
+    height:50px !important;
+    border-radius:15px !important;
+  }
+}
+
+
+/* Ausgewählte Teamfarbe:
+   Farbe -> dünner weißer Rahmen -> dunkler Außenrahmen */
+.team-color-setting-card .team-color-option.is-active,
+.team-color-first-card .team-color-option.is-active{
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 5px #000028,
+    0 5px 14px rgba(0,0,40,.14) !important;
+}
+
+.team-color-setting-card .team-color-option.is-active::after,
+.team-color-first-card .team-color-option.is-active::after{
+  content:none !important;
 }

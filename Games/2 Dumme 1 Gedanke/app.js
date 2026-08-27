@@ -23,6 +23,7 @@ const RECENT_PROMPT_LIMIT = 15;
 const savedSpicy = Number(localStorage.getItem('zweiDummeEinGedanke.spicyLevel'));
 const savedSuff = Number(localStorage.getItem('zweiDummeEinGedanke.suffLevel'));
 const savedExperimentalSuff = localStorage.getItem('zweiDummeEinGedanke.experimentalSuff');
+const savedTeamColor = localStorage.getItem('zweiDummeEinGedanke.teamColor');
 
 const state = {
   started:false,
@@ -30,6 +31,7 @@ const state = {
   suffLevel:[1,2,3,4].includes(savedSuff) ? savedSuff : 1,
   // Experimentelle Suff Intensity bleibt auch nach Neuladen/Neustart gespeichert.
   experimentalSuff:savedExperimentalSuff === 'true',
+  teamColor:savedTeamColor || '',
   currentData:null,
   nextData:null,
   recentPrompts:[],
@@ -68,6 +70,55 @@ const thoughtInput = document.querySelector('#thoughtInput');
 const thoughtDisplayText = document.querySelector('#thoughtDisplayText');
 const thoughtClearButton = document.querySelector('#thoughtClearButton');
 const thoughtTrashIcon = document.querySelector('#thoughtTrashIcon');
+const teamColorGrid = document.querySelector('#teamColorGrid');
+const teamColorFirstModal = document.querySelector('#teamColorFirstModal');
+const teamColorFirstGrid = document.querySelector('#teamColorFirstGrid');
+
+
+
+const TEAM_COLORS = [
+  '#FFA600','#F50800','#F500D4','#8717FF','#0032F9','#00B2FF','#00CD4E','#1E2127'
+];
+
+function applyTeamColor(){
+  const color = TEAM_COLORS.includes(state.teamColor)
+    ? state.teamColor
+    : '#6B7280';
+
+  document.documentElement.style.setProperty('--team-color',color);
+
+  document.querySelectorAll('[data-team-color]').forEach(button => {
+    const active = button.dataset.teamColor === state.teamColor;
+    button.classList.toggle('is-active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+
+}
+
+function chooseTeamColor(color){
+  if(!TEAM_COLORS.includes(color)) return;
+
+  state.teamColor = color;
+  localStorage.setItem('zweiDummeEinGedanke.teamColor',color);
+
+  // Sofort aktualisieren, bevor das Erststart-Popup geschlossen wird.
+  document.documentElement.style.setProperty('--team-color',color);
+  updateThoughtTrashIcon();
+  applyTeamColor();
+
+  if(teamColorFirstModal){
+    teamColorFirstModal.hidden = true;
+  }
+}
+
+function handleTeamColorClick(event){
+  const button = event.target.closest('[data-team-color]');
+  if(!button) return;
+  chooseTeamColor(button.dataset.teamColor);
+}
+
+teamColorGrid?.addEventListener('click',handleTeamColorClick);
+teamColorFirstGrid?.addEventListener('click',handleTeamColorClick);
 
 
 function gradient(level){ return `linear-gradient(180deg, ${level.top}, ${level.bottom})`; }
@@ -119,7 +170,8 @@ function selectLevel(kind,id){
     localStorage.setItem('zweiDummeEinGedanke.suffLevel',String(id));
   }
 
-  renderSettings();
+  applyTeamColor();
+renderSettings();
   applyCardColors();
 
   if(!state.started) return;
@@ -157,6 +209,7 @@ function suffDescription(levelId = state.suffLevel){
 }
 
 function renderSettings(){
+  applyTeamColor();
   renderLevelButtons('spicy');
   renderLevelButtons('suff');
   const spicy = getLevel('spicy',state.spicyLevel);
@@ -274,12 +327,24 @@ function makeCardData(){
 function updateThoughtTrashIcon(){
   if(!thoughtTrashIcon) return;
 
-  const level = [1,2,3,4].includes(Number(state.spicyLevel))
-    ? Number(state.spicyLevel)
-    : 1;
+  const trashByColor = {
+    '#FFA600':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_1.svg',
+    '#F50800':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_2.svg',
+    '#F500D4':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_3.svg',
+    '#8717FF':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_4.svg',
+    '#0032F9':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_5.svg',
+    '#00B2FF':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_6.svg',
+    '#00CD4E':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_7.svg',
+    '#1E2127':'../../Assets/Games/2_Dumme_1_Gedanke_Trash_Team_8.svg'
+  };
 
-  thoughtTrashIcon.src =
-    `../../Assets/Games/2_Dumme_1_Gedanke_Trash_Level_${level}.svg`;
+  const nextSrc = trashByColor[state.teamColor];
+  if(!nextSrc) return;
+
+  // Set both property + attribute immediately.
+  // The tiny cache-buster makes iOS refresh the image instantly when switching.
+  thoughtTrashIcon.src = `${nextSrc}?v=${Date.now()}`;
+  thoughtTrashIcon.setAttribute('src', `${nextSrc}?v=${Date.now()}`);
 }
 
 function applyCardColors(){
@@ -574,10 +639,14 @@ function updateThoughtPreview(){
 }
 
 function openThoughtOverlay(){
+  applyTeamColor();
   applyCardColors();
   thoughtOverlay.hidden = false;
   thoughtOverlay.setAttribute('aria-hidden','false');
   document.body.classList.add('thought-is-open');
+  if(teamColorFirstModal){
+    teamColorFirstModal.hidden = Boolean(state.teamColor);
+  }
   updateThoughtPreview();
 
   // Fokus erst nach dem Öffnen setzen, damit die mobile Tastatur zuverlässig erscheint.
