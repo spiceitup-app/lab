@@ -179,10 +179,40 @@
         </div>
       </div>
 
+
+      <div class="setting-card guest-access-card">
+        <div class="guest-access-row">
+          <button class="guest-qr-button" id="guestQrButton" type="button" aria-label="Guest Access QR-Code vergrößern">
+            <img src="../../Assets/Games/2_Dumme_1_Gedanke_Guest_QR.png" alt="Guest Access QR-Code" />
+          </button>
+
+          <div class="guest-access-copy">
+            <h2>Guest Access</h2>
+            <p class="guest-access-description">
+              Teile diesen QR-Code mit Gästen, damit sie den Gedanken-Editor auf ihrem eigenen Gerät öffnen und direkt über ihr eigenes Gerät mitspielen können.
+            </p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <button class="done-button" id="doneButton" type="button">Fertig</button>
   </section>
+
+
+
+  <div class="guest-qr-modal" id="guestQrModal" hidden>
+    <button class="guest-qr-modal-backdrop" id="guestQrModalBackdrop" type="button" aria-label="QR-Code schließen"></button>
+    <div class="guest-qr-modal-card" role="dialog" aria-modal="true" aria-label="Guest Access QR-Code">
+      <button class="icon-button guest-qr-close" id="guestQrClose" type="button" aria-label="QR-Code schließen">
+        <img src="../../Assets/Games/2_Dumme_1_Gedanke_Close.svg" alt="" />
+      </button>
+
+      <img class="guest-qr-modal-image" src="../../Assets/Games/2_Dumme_1_Gedanke_Guest_QR.png" alt="Guest Access QR-Code" />
+    </div>
+  </div>
+
 
   <script src="content/spicy-level-1.js"></script>
   <script src="content/spicy-level-2.js"></script>

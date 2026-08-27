@@ -734,3 +734,235 @@ body.thought-is-open{ overflow:hidden; }
 .team-color-first-card .team-color-option.is-active::after{
   content:none !important;
 }
+
+
+/* =========================================================
+   GUEST ACCESS
+   ========================================================= */
+.guest-access-card{
+  text-align:left;
+}
+
+.guest-qr-button{
+  width:128px;
+  height:128px;
+  margin:16px auto 12px;
+  padding:10px;
+  border:1px solid rgba(0,0,40,.08);
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  box-shadow:0 5px 16px rgba(0,0,40,.08);
+  cursor:pointer;
+}
+
+.guest-qr-button:active{
+  transform:scale(.98);
+}
+
+.guest-qr-button img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+}
+
+.guest-access-description{
+  margin:0 auto;
+  max-width:420px;
+  color:#8a93a1;
+  font-family:"Red Hat Text",system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.4;
+  text-align:center;
+}
+
+/* Großansicht des QR-Codes */
+.guest-qr-modal{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  display:grid;
+  place-items:center;
+  padding:24px;
+}
+
+.guest-qr-modal[hidden]{
+  display:none !important;
+}
+
+.guest-qr-modal-backdrop{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  padding:0;
+  border:0;
+  background:rgba(0,0,40,.36);
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+
+.guest-qr-modal-card{
+  position:relative;
+  z-index:1;
+  width:min(88vw,430px);
+  aspect-ratio:1;
+  padding:26px;
+  border-radius:30px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  box-shadow:0 20px 70px rgba(0,0,40,.22);
+}
+
+.guest-qr-modal-image{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+.guest-qr-close{
+  position:absolute !important;
+  top:12px !important;
+  right:12px !important;
+  z-index:2;
+}
+
+
+/* Guest Access: QR und Erklärung nebeneinander */
+.guest-access-content{
+  display:grid;
+  grid-template-columns:112px minmax(0,1fr);
+  gap:16px;
+  align-items:center;
+  margin-top:14px;
+}
+
+.guest-access-content .guest-qr-button{
+  width:112px !important;
+  height:112px !important;
+  margin:0 !important;
+  padding:9px !important;
+  border-radius:18px !important;
+}
+
+.guest-access-content .guest-access-description{
+  margin:0 !important;
+  max-width:none !important;
+  text-align:left !important;
+  font-size:14px;
+  line-height:1.45;
+}
+
+/* QR-Großansicht liegt sicher über Settings und Editor */
+.guest-qr-modal{
+  z-index:120 !important;
+}
+
+.guest-qr-modal-card{
+  width:min(86vw,390px) !important;
+  aspect-ratio:1 !important;
+  padding:28px !important;
+}
+
+@media (max-width:390px){
+  .guest-access-content{
+    grid-template-columns:100px minmax(0,1fr);
+    gap:14px;
+  }
+
+  .guest-access-content .guest-qr-button{
+    width:100px !important;
+    height:100px !important;
+  }
+
+  .guest-access-content .guest-access-description{
+    font-size:13.5px;
+  }
+}
+
+
+/* Guest Access: Überschrift + Erklärung rechts neben dem QR-Code */
+.guest-access-row{
+  display:grid;
+  grid-template-columns:112px minmax(0,1fr);
+  gap:16px;
+  align-items:center;
+  margin-top:2px;
+}
+
+.guest-access-copy{
+  min-width:0;
+}
+
+.guest-access-copy h2{
+  margin:0 0 7px;
+  font-family:"Red Hat Display",system-ui,sans-serif;
+  font-size:20px;
+  line-height:1;
+  font-weight:800;
+  color:#000028;
+}
+
+.guest-access-row .guest-qr-button{
+  width:112px !important;
+  height:112px !important;
+  margin:0 !important;
+}
+
+.guest-access-row .guest-access-description{
+  margin:0 !important;
+  max-width:none !important;
+  text-align:left !important;
+}
+
+/* QR-Popup: mehr Weißraum, damit QR-Code und X sauber getrennt sind */
+.guest-qr-modal-card{
+  width:min(90vw,430px) !important;
+  aspect-ratio:auto !important;
+  padding:54px 34px 34px !important;
+  border-radius:30px !important;
+}
+
+.guest-qr-modal-image{
+  width:100% !important;
+  height:auto !important;
+  max-width:330px !important;
+  aspect-ratio:1 !important;
+  object-fit:contain !important;
+  display:block !important;
+  margin:0 auto !important;
+}
+
+.guest-qr-close{
+  top:12px !important;
+  right:12px !important;
+}
+
+@media (max-width:390px){
+  .guest-access-row{
+    grid-template-columns:100px minmax(0,1fr);
+    gap:14px;
+  }
+
+  .guest-access-row .guest-qr-button{
+    width:100px !important;
+    height:100px !important;
+  }
+
+  .guest-access-copy h2{
+    font-size:19px;
+  }
+
+  .guest-qr-modal-card{
+    width:min(92vw,390px) !important;
+    padding:52px 28px 30px !important;
+  }
+
+  .guest-qr-modal-image{
+    max-width:300px !important;
+  }
+}

@@ -70,6 +70,10 @@ const thoughtInput = document.querySelector('#thoughtInput');
 const thoughtDisplayText = document.querySelector('#thoughtDisplayText');
 const thoughtClearButton = document.querySelector('#thoughtClearButton');
 const thoughtTrashIcon = document.querySelector('#thoughtTrashIcon');
+const guestQrButton = document.querySelector('#guestQrButton');
+const guestQrModal = document.querySelector('#guestQrModal');
+const guestQrModalBackdrop = document.querySelector('#guestQrModalBackdrop');
+const guestQrClose = document.querySelector('#guestQrClose');
 const teamColorGrid = document.querySelector('#teamColorGrid');
 const teamColorFirstModal = document.querySelector('#teamColorFirstModal');
 const teamColorFirstGrid = document.querySelector('#teamColorFirstGrid');
@@ -667,6 +671,30 @@ function closeThoughtOverlay(){
 
 thoughtFab?.addEventListener('click',openThoughtOverlay);
 thoughtClose?.addEventListener('click',closeThoughtOverlay);
+
+function openGuestQrModal(){
+  if(!guestQrModal) return;
+  guestQrModal.hidden = false;
+  document.body.classList.add('guest-qr-is-open');
+}
+
+function closeGuestQrModal(){
+  if(!guestQrModal) return;
+  guestQrModal.hidden = true;
+  document.body.classList.remove('guest-qr-is-open');
+}
+
+guestQrButton?.addEventListener('click',openGuestQrModal);
+guestQrModalBackdrop?.addEventListener('click',closeGuestQrModal);
+guestQrClose?.addEventListener('click',closeGuestQrModal);
+
+document.addEventListener('keydown',event => {
+  if(event.key === 'Escape' && guestQrModal && !guestQrModal.hidden){
+    closeGuestQrModal();
+  }
+});
+
+
 thoughtInput?.addEventListener('input',updateThoughtPreview);
 
 thoughtClearButton?.addEventListener('click',() => {
