@@ -19,10 +19,11 @@ const SPICY_MIX = {
   3: [[1,.20],[2,.30],[3,.50]]
 };
 
-const RECENT_PROMPT_LIMIT = 15;
+const RECENT_PROMPT_LIMIT = 50;
 const savedSpicy = Number(localStorage.getItem('zweiDummeEinGedanke.spicyLevel'));
 const savedSuff = Number(localStorage.getItem('zweiDummeEinGedanke.suffLevel'));
 const savedExperimentalSuff = localStorage.getItem('zweiDummeEinGedanke.experimentalSuff');
+const savedWerWuerdeEherPercent = Number(localStorage.getItem('zweiDummeEinGedanke.werWuerdeEherPercent'));
 const savedTeamColor = localStorage.getItem('zweiDummeEinGedanke.teamColor');
 
 const state = {
@@ -31,6 +32,7 @@ const state = {
   suffLevel:[1,2,3,4].includes(savedSuff) ? savedSuff : 1,
   // Experimentelle Suff Intensity bleibt auch nach Neuladen/Neustart gespeichert.
   experimentalSuff:savedExperimentalSuff === 'true',
+  werWuerdeEherPercent:Number.isFinite(savedWerWuerdeEherPercent) ? Math.min(100,Math.max(0,savedWerWuerdeEherPercent)) : 0,
   teamColor:savedTeamColor || '',
   currentData:null,
   nextData:null,
@@ -61,6 +63,8 @@ const suffLevels = document.querySelector('#suffLevels');
 const spicySummary = document.querySelector('#spicySummary');
 const suffSummary = document.querySelector('#suffSummary');
 const experimentalSuffToggle = document.querySelector('#experimentalSuffToggle');
+const werWuerdeEherSlider = document.querySelector('#werWuerdeEherSlider');
+const werWuerdeEherValue = document.querySelector('#werWuerdeEherValue');
 const backToGamesButton = document.querySelector('#backToGamesButton');
 
 const thoughtFab = document.querySelector('#thoughtFab');
@@ -225,12 +229,56 @@ function renderSettings(){
   suffSummary.querySelector('strong').textContent = suff.name;
   suffSummary.querySelector('span').textContent = suffDescription();
   experimentalSuffToggle.checked = state.experimentalSuff;
+  if(werWuerdeEherSlider){
+    werWuerdeEherSlider.value = String(state.werWuerdeEherPercent);
+    werWuerdeEherSlider.style.setProperty(
+      '--slider-progress',
+      `${state.werWuerdeEherPercent}%`
+    );
+  }
+  if(werWuerdeEherValue){
+    werWuerdeEherValue.textContent = `${state.werWuerdeEherPercent}%`;
+  }
 }
 
 function getPromptPool(level){
-  if(level === 1) return window.SPICY_LEVEL_1 || [];
-  if(level === 2) return window.SPICY_LEVEL_2 || [];
-  if(level === 3) return window.SPICY_LEVEL_3 || [];
+  /*
+    WICHTIG:
+    Die Content-Dateien können entweder
+      window.SPICY_LEVEL_1 = [...]
+    oder
+      const SPICY_LEVEL_1 = [...]
+    verwenden.
+
+    Die vorige Version hat NUR window.SPICY_LEVEL_X gelesen.
+    Wenn deine Dateien mit const/let angelegt sind, war der Pool deshalb
+    leer und choosePrompt() fiel immer auf "Spicy Intensity" zurück.
+  */
+
+  let source = null;
+
+  if(level === 1){
+    if(typeof SPICY_LEVEL_1 !== 'undefined') source = SPICY_LEVEL_1;
+    else source = window.SPICY_LEVEL_1;
+  }
+
+  if(level === 2){
+    if(typeof SPICY_LEVEL_2 !== 'undefined') source = SPICY_LEVEL_2;
+    else source = window.SPICY_LEVEL_2;
+  }
+
+  if(level === 3){
+    if(typeof SPICY_LEVEL_3 !== 'undefined') source = SPICY_LEVEL_3;
+    else source = window.SPICY_LEVEL_3;
+  }
+
+  // Normalfall: Array aus Kartenobjekten.
+  if(Array.isArray(source)) return source;
+
+  // Falls versehentlich nur ein einzelnes Objekt exportiert wurde,
+  // wird auch das sauber als Ein-Karten-Pool akzeptiert.
+  if(source && typeof source === 'object') return [source];
+
   return [];
 }
 
@@ -259,42 +307,129 @@ function weightedPairValue(entries){
   return entries.at(-1)?.[0];
 }
 
+function normalizePromptItem(item){
+  if(item && typeof item === 'object'){
+    const text = typeof item.text === 'string' ? item.text.trim() : '';
+    if(!text) return null;
+    return {
+      text,
+      werWuerdeEher:item.werWuerdeEher === true
+    };
+  }
+
+  // Alte Strings bleiben kompatibel.
+  if(typeof item === 'string'){
+    const text = item.trim();
+    return text ? { text, werWuerdeEher:false } : null;
+  }
+
+  return null;
+}
+
 function promptCandidates(){
   return (SPICY_MIX[state.spicyLevel] || SPICY_MIX[1])
     .map(([level,weight]) => ({
       level,
       weight,
-      items:getPromptPool(level).filter(item => typeof item === 'string' && item.trim())
+      items:getPromptPool(level)
+        .map(normalizePromptItem)
+        .filter(Boolean)
     }))
     .filter(group => group.items.length);
 }
 
-function choosePrompt(){
-  const groups = promptCandidates();
-  if(!groups.length) return 'Spicy Intensity';
+function weightedPromptGroup(groups){
+  if(!groups.length) return null;
 
-  const blocked = new Set(state.recentPrompts);
-  const availableGroups = groups
-    .map(group => ({...group, available:group.items.filter(item => !blocked.has(item))}))
-    .filter(group => group.available.length);
+  const totalWeight = groups.reduce((sum,group) => sum + group.weight,0);
+  let random = Math.random() * totalWeight;
 
-  let chosen;
-  if(availableGroups.length){
-    const chosenLevel = weightedPairValue(availableGroups.map(group => [group.level,group.weight]));
-    const group = availableGroups.find(item => item.level === chosenLevel) || availableGroups[0];
-    chosen = group.available[Math.floor(Math.random() * group.available.length)];
-  } else {
-    const all = [...new Set(groups.flatMap(group => group.items))];
-    const oldestSeen = Math.min(...all.map(item => state.promptLastSeen.get(item) ?? -Infinity));
-    const leastRecent = all.filter(item => (state.promptLastSeen.get(item) ?? -Infinity) === oldestSeen);
-    chosen = leastRecent[Math.floor(Math.random() * leastRecent.length)];
+  for(const group of groups){
+    random -= group.weight;
+    if(random <= 0) return group;
   }
 
+  return groups.at(-1);
+}
+
+function choosePrompt(){
+  const groups = promptCandidates();
+  if(!groups.length) return 'Keine Karten geladen';
+
+  const blocked = new Set(state.recentPrompts);
+  const percent = Math.min(
+    100,
+    Math.max(0,Number(state.werWuerdeEherPercent) || 0)
+  );
+
+  // Der Slider entscheidet ausschließlich true vs. false.
+  const wantsWerWuerdeEher = Math.random() * 100 < percent;
+
+  function availableGroupsFor(category){
+    return groups
+      .map(group => ({
+        ...group,
+        available:group.items.filter(item =>
+          item.werWuerdeEher === category &&
+          !blocked.has(item.text)
+        )
+      }))
+      .filter(group => group.available.length);
+  }
+
+  // Erst gewünschte Kategorie.
+  let availableGroups = availableGroupsFor(wantsWerWuerdeEher);
+
+  // Wenn dort wegen Poolgröße/50er-Sperre nichts frei ist:
+  // andere Kategorie nehmen, damit das Spiel weiterläuft.
+  if(!availableGroups.length){
+    availableGroups = availableGroupsFor(!wantsWerWuerdeEher);
+  }
+
+  let chosen = null;
+
+  if(availableGroups.length){
+    const group = weightedPromptGroup(availableGroups);
+    chosen = group.available[
+      Math.floor(Math.random() * group.available.length)
+    ];
+  }
+
+  // Nur wenn wirklich ALLES in den letzten 50 lag:
+  // am längsten nicht gesehene Karte nehmen.
+  if(!chosen){
+    const all = groups.flatMap(group => group.items);
+
+    const preferred = all.filter(
+      item => item.werWuerdeEher === wantsWerWuerdeEher
+    );
+
+    const pool = preferred.length ? preferred : all;
+
+    const oldestSeen = Math.min(
+      ...pool.map(item => state.promptLastSeen.get(item.text) ?? -Infinity)
+    );
+
+    const leastRecent = pool.filter(
+      item => (state.promptLastSeen.get(item.text) ?? -Infinity) === oldestSeen
+    );
+
+    chosen = leastRecent[
+      Math.floor(Math.random() * leastRecent.length)
+    ];
+  }
+
+  if(!chosen) return 'Keine Karte verfügbar';
+
   state.promptSequence += 1;
-  state.promptLastSeen.set(chosen,state.promptSequence);
-  state.recentPrompts.push(chosen);
-  if(state.recentPrompts.length > RECENT_PROMPT_LIMIT) state.recentPrompts.shift();
-  return chosen;
+  state.promptLastSeen.set(chosen.text,state.promptSequence);
+  state.recentPrompts.push(chosen.text);
+
+  if(state.recentPrompts.length > RECENT_PROMPT_LIMIT){
+    state.recentPrompts.shift();
+  }
+
+  return chosen.text;
 }
 
 function formatSips(value){
@@ -459,6 +594,34 @@ card.addEventListener('pointercancel',() => {
   if(state.dragging){
     state.dragging=false;
     cancelSwipe();
+  }
+});
+
+werWuerdeEherSlider?.addEventListener('input',() => {
+  const value = Math.min(
+    100,
+    Math.max(0,Number(werWuerdeEherSlider.value) || 0)
+  );
+
+  state.werWuerdeEherPercent = value;
+  localStorage.setItem(
+    'zweiDummeEinGedanke.werWuerdeEherPercent',
+    String(value)
+  );
+
+  werWuerdeEherSlider.style.setProperty(
+    '--slider-progress',
+    `${value}%`
+  );
+
+  if(werWuerdeEherValue){
+    werWuerdeEherValue.textContent = `${value}%`;
+  }
+
+  // Nur die nächste Karte neu vorbereiten.
+  if(state.started){
+    state.nextData = makeCardData();
+    renderPreviewCard();
   }
 });
 
