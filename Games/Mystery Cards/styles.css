@@ -12,8 +12,9 @@
   --text:#080829;
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
+html,body{margin:0;width:100%;height:100%;min-height:100%}
 body{
+  height:100dvh;
   min-height:100dvh;
   overflow:hidden;
   background:#0028AD;
@@ -26,6 +27,7 @@ button{font:inherit}
 .app-shell{
   position:relative;
   width:100%;
+  height:100dvh;
   min-height:100dvh;
   overflow:hidden;
   background:radial-gradient(60.37% 60.37% at 50% 50%, #005FF3 0%, #0046CB 40%, #0028AD 74.58%, #00198C 100%);
@@ -896,5 +898,29 @@ button{font:inherit}
   .tip-popover{
     right:-8px;
     width:min(292px,calc(100vw - 44px));
+  }
+}
+
+
+/* =========================================================
+   iOS / PWA FULL-HEIGHT FIX
+   Exakt dieselbe Höhenstrategie wie in der funktionierenden
+   No-Iframe-Version der App.
+   ========================================================= */
+@media all and (display-mode: standalone){
+  html,
+  body{
+    width:100%;
+    height:100vh;
+    min-height:100vh;
+  }
+
+  .app-shell{
+    height:100vh;
+    min-height:100vh;
+  }
+
+  .game-stage{
+    min-height:calc(100vh - 120px);
   }
 }
