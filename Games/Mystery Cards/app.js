@@ -25,6 +25,7 @@ const savedExperimental = localStorage.getItem('mysteryCards.experimentalSuff');
 const savedMinutes = Number(localStorage.getItem('mysteryCards.roundMinutes'));
 const savedDirectness = Number(localStorage.getItem('mysteryCards.directness'));
 const savedSpicyCards = localStorage.getItem('mysteryCards.spicyCards');
+const savedTipsEnabled = localStorage.getItem('mysteryCards.tipsEnabled');
 
 const state = {
   spicyLevel:[1,2,3].includes(savedSpicy) ? savedSpicy : 1,
@@ -32,6 +33,12 @@ const state = {
   experimentalSuff:savedExperimental === 'true',
   directness:[0,1,2].includes(savedDirectness) ? savedDirectness : 0,
   spicyCards:savedSpicyCards === 'true',
+  tipsEnabled:savedTipsEnabled === 'true',
+  tip1Revealed:false,
+  tip2Revealed:false,
+  tip1Triggered:false,
+  tip2Triggered:false,
+  timerTotalMs:null,
   roundMinutes:Number.isFinite(savedMinutes) && savedMinutes >= 1 && savedMinutes <= 15 ? savedMinutes : 4,
   started:false,
   currentData:null,
@@ -62,29 +69,72 @@ const instructionText = document.querySelector('#instructionText');
 const timerPill = document.querySelector('#timerPill');
 const timerText = document.querySelector('#timerText');
 const nextCardSound = document.querySelector('#nextCardSound');
+const tipSound = document.querySelector('#tipSound');
+const tipBadge = document.querySelector('#tipBadge');
+const tipPopover = document.querySelector('#tipPopover');
+const tipPopoverClose = document.querySelector('#tipPopoverClose');
+const tipEntry1 = document.querySelector('#tipEntry1');
+const tipEntry2 = document.querySelector('#tipEntry2');
+const tipTime1 = document.querySelector('#tipTime1');
+const tipTime2 = document.querySelector('#tipTime2');
+const tipBody1 = document.querySelector('#tipBody1');
+const tipBody2 = document.querySelector('#tipBody2');
+const tipFlash = document.querySelector('#tipFlash');
+const tipFlashLabel = document.querySelector('#tipFlashLabel');
+const tipFlashText = document.querySelector('#tipFlashText');
 
 let audioUnlocked = false;
 
 async function unlockAudio(){
-  if(audioUnlocked || !nextCardSound) return;
+  if(audioUnlocked) return;
+
+  const elements = [nextCardSound,tipSound].filter(Boolean);
+  if(!elements.length){
+    audioUnlocked = true;
+    return;
+  }
+
+  const oldValues = elements.map(element => ({
+    element,
+    volume:element.volume,
+    muted:element.muted
+  }));
 
   try{
-    const previousVolume = nextCardSound.volume;
-    nextCardSound.volume = 0;
-    nextCardSound.currentTime = 0;
+    /*
+      Beide Audioelemente werden im selben direkten User-Gesture gestartet.
+      Das ist für iOS/PWA wichtig, damit sowohl der bisherige Next-Sound
+      als auch der spätere automatische Tipp-Sound abgespielt werden darf.
+    */
+    const plays = elements.map(element => {
+      element.muted = false;
+      element.volume = 0;
+      element.currentTime = 0;
+      return element.play();
+    });
 
-    await nextCardSound.play();
+    const results = await Promise.allSettled(plays);
 
-    nextCardSound.pause();
-    nextCardSound.currentTime = 0;
-    nextCardSound.volume = previousVolume || 1;
-    audioUnlocked = true;
+    oldValues.forEach(({element,volume,muted}) => {
+      element.pause();
+      element.currentTime = 0;
+      element.volume = volume || 1;
+      element.muted = muted;
+    });
+
+    audioUnlocked = results.every(result => result.status === 'fulfilled');
   }catch(_){
-    // Falls iOS den ersten Versuch noch blockiert, wird beim nächsten
-    // direkten Nutzer-Tap erneut versucht.
-    nextCardSound.volume = 1;
+    oldValues.forEach(({element,volume,muted}) => {
+      try{
+        element.pause();
+        element.currentTime = 0;
+        element.volume = volume || 1;
+        element.muted = muted;
+      }catch(__){}
+    });
   }
 }
+
 
 
 const settingsButton = document.querySelector('#settingsButton');
@@ -99,6 +149,7 @@ const experimentalSuffToggle = document.querySelector('#experimentalSuffToggle')
 const directnessLevels = document.querySelector('#directnessLevels');
 const directnessExample = document.querySelector('#directnessExample');
 const spicyCardsToggle = document.querySelector('#spicyCardsToggle');
+const tipsToggle = document.querySelector('#tipsToggle');
 const timerMinus = document.querySelector('#timerMinus');
 const timerPlus = document.querySelector('#timerPlus');
 const timerSettingValue = document.querySelector('#timerSettingValue');
@@ -155,18 +206,22 @@ function getPromptPool(level){
   {
     text: "Welche zwei Mitspieler ...?",
     beziehungskiller: 1,
-    spiceCall: true
+    spiceCall: true,
+    tipp1: "Erster Hinweis",
+    tipp2: "Zweiter Hinweis"
   }
 
   Bestehende reine Strings bleiben weiterhin gültig.
   Ein String entspricht automatisch:
   beziehungskiller: 0
   spiceCall: false
+  tipp1: ""
+  tipp2: ""
 */
 function normalizePromptItem(item){
   if(typeof item === 'string'){
     const text = item.trim();
-    return text ? {text,beziehungskiller:0,spiceCall:false} : null;
+    return text ? {text,beziehungskiller:0,spiceCall:false,tipp1:'',tipp2:''} : null;
   }
 
   if(!item || typeof item !== 'object') return null;
@@ -177,10 +232,20 @@ function normalizePromptItem(item){
   const rawKiller = Number(item.beziehungskiller);
   const beziehungskiller = [1,2].includes(rawKiller) ? rawKiller : 0;
 
+  const tipp1 = typeof item.tipp1 === 'string'
+    ? item.tipp1.trim()
+    : (typeof item.tip1 === 'string' ? item.tip1.trim() : '');
+
+  const tipp2 = typeof item.tipp2 === 'string'
+    ? item.tipp2.trim()
+    : (typeof item.tip2 === 'string' ? item.tip2.trim() : '');
+
   return {
     text,
     beziehungskiller,
-    spiceCall:item.spiceCall === true
+    spiceCall:item.spiceCall === true,
+    tipp1,
+    tipp2
   };
 }
 
@@ -215,7 +280,7 @@ function promptKey(item){
 
 function choosePrompt(){
   const groups = promptCandidates();
-  if(!groups.length) return {text:'Keine passende Mystery Card verfügbar',spiceCall:false};
+  if(!groups.length) return {text:'Keine passende Mystery Card verfügbar',spiceCall:false,tipp1:'',tipp2:''};
 
   const blocked = new Set(state.recentPrompts);
   const availableGroups = groups
@@ -246,7 +311,12 @@ function choosePrompt(){
   state.recentPrompts.push(key);
   if(state.recentPrompts.length > RECENT_PROMPT_LIMIT) state.recentPrompts.shift();
 
-  return {text:chosen.text,spiceCall:chosen.spiceCall === true};
+  return {
+    text:chosen.text,
+    spiceCall:chosen.spiceCall === true,
+    tipp1:chosen.tipp1 || '',
+    tipp2:chosen.tipp2 || ''
+  };
 }
 
 function promptTextValue(prompt){
@@ -254,6 +324,175 @@ function promptTextValue(prompt){
 }
 function promptIsSpicyCall(prompt){
   return Boolean(prompt && typeof prompt === 'object' && prompt.spiceCall === true);
+}
+
+function promptTipValue(prompt,index){
+  if(!prompt || typeof prompt !== 'object') return '';
+  const value = index === 1 ? prompt.tipp1 : prompt.tipp2;
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function currentTipText(index){
+  return state.currentData ? promptTipValue(state.currentData.prompt,index) : '';
+}
+
+function currentCardHasTips(){
+  return Boolean(currentTipText(1) || currentTipText(2));
+}
+
+function closeTipPopover(){
+  tipPopover.hidden = true;
+  tipBadge.setAttribute('aria-expanded','false');
+}
+
+function openTipPopover(){
+  if(tipBadge.hidden) return;
+  unlockAudio();
+  renderTipUI(state.remainingMs ?? state.roundMinutes*60*1000);
+  tipPopover.hidden = false;
+  tipBadge.setAttribute('aria-expanded','true');
+}
+
+function syncTipBadge(){
+  const visible = Boolean(
+    state.started &&
+    state.tipsEnabled &&
+    currentCardHasTips()
+  );
+
+  tipBadge.hidden = !visible;
+
+  if(!visible){
+    closeTipPopover();
+  }
+}
+
+function resetTipProgress(){
+  state.tip1Revealed = false;
+  state.tip2Revealed = false;
+  state.tip1Triggered = false;
+  state.tip2Triggered = false;
+
+  closeTipPopover();
+  tipFlash.hidden = true;
+  tipFlash.classList.remove('is-visible');
+
+  renderTipUI(state.roundMinutes*60*1000);
+  syncTipBadge();
+}
+
+function tipCountdownMs(index,remainingMs){
+  const total = state.timerTotalMs || state.roundMinutes*60*1000;
+  const remaining = Math.max(0,Math.min(total,remainingMs ?? total));
+  const elapsed = total - remaining;
+  const thresholdElapsed = total * (index === 1 ? .60 : .80);
+  return Math.max(0,thresholdElapsed - elapsed);
+}
+
+function renderTipEntry(index,remainingMs){
+  const entry = index === 1 ? tipEntry1 : tipEntry2;
+  const time = index === 1 ? tipTime1 : tipTime2;
+  const body = index === 1 ? tipBody1 : tipBody2;
+  const text = currentTipText(index);
+  const revealed = index === 1 ? state.tip1Revealed : state.tip2Revealed;
+
+  entry.classList.toggle('is-missing',!text);
+  entry.classList.toggle('is-locked',Boolean(text && !revealed));
+
+  if(!text){
+    time.textContent = '';
+    body.textContent = 'Kein Tipp hinterlegt';
+    return;
+  }
+
+  if(revealed){
+    time.textContent = 'Verfügbar';
+    body.textContent = text;
+    return;
+  }
+
+  time.textContent = formatTime(tipCountdownMs(index,remainingMs));
+  body.textContent = 'Noch verborgen';
+}
+
+function renderTipUI(remainingMs){
+  renderTipEntry(1,remainingMs);
+  renderTipEntry(2,remainingMs);
+  syncTipBadge();
+}
+
+let tipFlashTimeout = null;
+
+function showTipFlash(index,text){
+  if(!text) return;
+
+  if(tipFlashTimeout){
+    clearTimeout(tipFlashTimeout);
+    tipFlashTimeout = null;
+  }
+
+  tipFlashLabel.textContent = `Tipp ${index}`;
+  tipFlashText.textContent = text;
+
+  tipFlash.hidden = false;
+  tipFlash.classList.remove('is-visible');
+  void tipFlash.offsetWidth;
+  tipFlash.classList.add('is-visible');
+
+  tipFlashTimeout = setTimeout(() => {
+    tipFlash.classList.remove('is-visible');
+    tipFlash.hidden = true;
+    tipFlashTimeout = null;
+  },3050);
+}
+
+async function playTipSound(){
+  if(!tipSound) return;
+
+  try{
+    tipSound.currentTime = 0;
+    await tipSound.play();
+  }catch(_){}
+}
+
+function revealTip(index,{announce=true}={}){
+  const text = currentTipText(index);
+  if(!text) return;
+
+  if(index === 1){
+    if(state.tip1Triggered) return;
+    state.tip1Triggered = true;
+    state.tip1Revealed = true;
+  }else{
+    if(state.tip2Triggered) return;
+    state.tip2Triggered = true;
+    state.tip2Revealed = true;
+  }
+
+  renderTipUI(state.remainingMs);
+
+  if(announce){
+    playTipSound();
+    showTipFlash(index,text);
+  }
+}
+
+function updateTipProgress(remainingMs,{announce=true}={}){
+  renderTipUI(remainingMs);
+
+  if(!state.started || !state.tipsEnabled || !currentCardHasTips()) return;
+
+  const total = state.timerTotalMs || state.roundMinutes*60*1000;
+  const remaining = Math.max(0,Math.min(total,remainingMs ?? total));
+  const elapsed = total - remaining;
+
+  if(elapsed >= total*.60){
+    revealTip(1,{announce});
+  }
+
+  if(elapsed >= total*.80){
+    revealTip(2,{announce});
+  }
 }
 
 function formatSips(value){
@@ -370,6 +609,7 @@ function renderCurrentCard(){
   renderPenaltyValue(wrongGuessPenalty,state.currentData.penalties.wrong);
   renderPenaltyValue(correctGuessPenalty,state.currentData.penalties.correct);
   renderPenaltyValue(revealPenalty,state.currentData.penalties.reveal);
+  renderTipUI(state.remainingMs ?? state.roundMinutes*60*1000);
 }
 function renderPreviewCard(){
   if(!state.nextData) return;
@@ -443,6 +683,7 @@ function renderSettings(){
 
   experimentalSuffToggle.checked = state.experimentalSuff;
   spicyCardsToggle.checked = state.spicyCards;
+  tipsToggle.checked = state.tipsEnabled;
 
   directnessLevels.querySelectorAll('[data-directness]').forEach(button => {
     button.classList.toggle('is-active',Number(button.dataset.directness) === state.directness);
@@ -501,15 +742,20 @@ function stopTimer(){
 function startTimer(){
   stopTimer();
   const total = state.roundMinutes * 60 * 1000;
+  state.timerTotalMs = total;
   state.deadline = Date.now() + total;
   state.remainingMs = total;
+
+  resetTipProgress();
   updateTimerVisual(total);
+  updateTipProgress(total,{announce:false});
   timerPill.classList.add('is-running');
 
   state.timerId = setInterval(() => {
     const remaining = Math.max(0,state.deadline - Date.now());
     state.remainingMs = remaining;
     updateTimerVisual(remaining);
+    updateTipProgress(remaining);
 
     if(remaining <= 0){
       stopTimer();
@@ -520,6 +766,7 @@ function startTimer(){
 function resetTimer(){
   if(state.started) startTimer();
   else updateTimerVisual(state.roundMinutes*60*1000);
+renderTipUI(state.roundMinutes*60*1000);
 }
 async function playNextSound(){
   try{
@@ -553,6 +800,7 @@ function startGame(){
 }
 function finishSwipe(direction,fromTimer=false){
   if(state.swiping || !state.started) return;
+  closeTipPopover();
   state.swiping = true;
   hidePrompt();
 
@@ -659,6 +907,7 @@ document.addEventListener('visibilitychange',() => {
 });
 
 function openSettings(){
+  closeTipPopover();
   renderSettings();
   sheetScrim.hidden = false;
   settingsSheet.classList.add('is-open');
@@ -682,9 +931,11 @@ function refreshPromptsAfterFilterChange(){
 
   state.currentData.prompt = choosePrompt();
   state.nextData.prompt = choosePrompt();
+  resetTipProgress();
   hidePrompt();
   renderCurrentCard();
   renderPreviewCard();
+  if(state.started) updateTipProgress(state.remainingMs,{announce:false});
 }
 
 directnessLevels.addEventListener('click',event => {
@@ -708,6 +959,60 @@ spicyCardsToggle.addEventListener('change',() => {
   // Keine Karte wird neu gezogen oder herausgefiltert.
   // Nur der sichtbare "Spicy Call"-Hinweis wird an/ausgeschaltet.
   if(state.started) renderCurrentCard();
+});
+
+tipsToggle.addEventListener('change',() => {
+  state.tipsEnabled = tipsToggle.checked;
+  localStorage.setItem('mysteryCards.tipsEnabled',String(state.tipsEnabled));
+  renderSettings();
+
+  if(!state.tipsEnabled){
+    closeTipPopover();
+    syncTipBadge();
+    return;
+  }
+
+  /*
+    Wird die Funktion mitten in einer laufenden Karte aktiviert,
+    werden bereits vergangene Schwellen still nachgezogen.
+    Der Tipp ist dann im Menü verfügbar, ohne verspätete Vollbild-Einblendung.
+  */
+  if(state.started){
+    updateTipProgress(state.remainingMs,{announce:false});
+  }else{
+    syncTipBadge();
+  }
+});
+
+tipBadge.addEventListener('click',event => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if(tipPopover.hidden){
+    openTipPopover();
+  }else{
+    closeTipPopover();
+  }
+});
+
+tipPopoverClose.addEventListener('click',event => {
+  event.preventDefault();
+  event.stopPropagation();
+  closeTipPopover();
+});
+
+tipPopover.addEventListener('pointerdown',event => {
+  event.stopPropagation();
+});
+
+document.addEventListener('pointerdown',event => {
+  if(tipPopover.hidden) return;
+  if(event.target.closest('#tipPopover') || event.target.closest('#tipBadge')) return;
+  closeTipPopover();
+});
+
+document.addEventListener('keydown',event => {
+  if(event.key === 'Escape') closeTipPopover();
 });
 
 experimentalSuffToggle.addEventListener('change',() => {

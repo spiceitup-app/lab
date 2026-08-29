@@ -12,9 +12,8 @@
   --text:#080829;
 }
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;min-height:100%}
+html,body{margin:0;min-height:100%}
 body{
-  height:100dvh;
   min-height:100dvh;
   overflow:hidden;
   background:#0028AD;
@@ -27,7 +26,6 @@ button{font:inherit}
 .app-shell{
   position:relative;
   width:100%;
-  height:100dvh;
   min-height:100dvh;
   overflow:hidden;
   background:radial-gradient(60.37% 60.37% at 50% 50%, #005FF3 0%, #0046CB 40%, #0028AD 74.58%, #00198C 100%);
@@ -652,28 +650,251 @@ button{font:inherit}
   box-shadow:0 2px 8px rgba(0,0,0,.10);
 }
 
+
 /* =========================================================
-   iOS / PWA FULLSCREEN – Top-Level-Spielseite
-
-   Kein iframe mehr:
-   Jede Spielseite benutzt dieselbe Höhenstrategie wie die
-   funktionierende Startseite.
+   MYSTERY CARDS – TIPPS
    ========================================================= */
-@media all and (display-mode: standalone){
-  html,
-  body{
-    width:100%;
-    height:100vh;
-    min-height:100vh;
-  }
 
-  .app-shell{
-    height:100vh;
-    min-height:100vh;
-  }
-
-  .game-stage{
-    min-height:calc(100vh - 120px);
-  }
+.tips-setting-card{
+  padding-top:14px;
+  padding-bottom:14px;
 }
 
+/* Kleine "Notification"-Kachel an der oberen rechten Kartenkante */
+.tip-badge[hidden],
+.tip-popover[hidden],
+.tip-flash[hidden]{
+  display:none !important;
+}
+
+.tip-badge{
+  position:absolute;
+  z-index:7;
+  top:18px;
+  right:-14px;
+  width:54px;
+  height:54px;
+  padding:0;
+  border:1px solid rgb(255 255 255 / 28%);
+  border-radius:17px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(180deg,var(--spicy-top),var(--spicy-bottom));
+  box-shadow:
+    0 10px 26px 2px rgb(0 0 0 / 24%),
+    0 2px 10px rgb(0 0 0 / 12%);
+  cursor:pointer;
+  transform:translateZ(0);
+  transition:transform 150ms ease,box-shadow 150ms ease;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.tip-badge:active{
+  transform:scale(.95);
+}
+
+.tip-badge img{
+  width:28px;
+  height:28px;
+  object-fit:contain;
+  display:block;
+}
+
+/* Kleines Tipp-Fenster direkt an der Karte */
+.tip-popover{
+  position:absolute;
+  z-index:8;
+  top:80px;
+  right:-10px;
+  width:min(306px,calc(100vw - 50px));
+  padding:14px;
+  border:1px solid #D7DEE8;
+  border-radius:24px;
+  background:#fff;
+  color:#080829;
+  box-shadow:0 18px 42px rgb(0 0 0 / 22%);
+  transform-origin:top right;
+  animation:tipPopoverIn 170ms cubic-bezier(.2,.78,.2,1);
+}
+
+@keyframes tipPopoverIn{
+  from{opacity:0;transform:scale(.96) translateY(-4px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.tip-popover-head{
+  min-height:36px;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.tip-popover-head > strong{
+  font-family:"Red Hat Display",system-ui,sans-serif;
+  font-size:20px;
+  line-height:1;
+  font-weight:800;
+}
+
+.tip-popover-close{
+  width:34px;
+  height:34px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#EEF2F7;
+  color:#080829;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.tip-entry{
+  padding:14px;
+  border-radius:18px;
+  color:#fff;
+  background:linear-gradient(180deg,var(--spicy-top),var(--spicy-bottom));
+  box-shadow:0 5px 14px rgb(0 0 0 / 10%);
+}
+
+.tip-entry + .tip-entry{
+  margin-top:10px;
+}
+
+.tip-entry-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.tip-entry-head strong{
+  font-family:"Red Hat Display",system-ui,sans-serif;
+  font-size:17px;
+  line-height:1;
+  font-weight:800;
+}
+
+.tip-entry-time{
+  min-width:62px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:rgb(0 0 0 / 16%);
+  font-size:14px;
+  line-height:1;
+  font-weight:700;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+
+.tip-entry-body{
+  margin-top:10px;
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  font-size:15px;
+  line-height:1.28;
+  font-weight:400;
+}
+
+.tip-entry.is-locked .tip-entry-body{
+  opacity:.72;
+  font-style:italic;
+}
+
+.tip-entry.is-missing{
+  opacity:.48;
+}
+
+.tip-entry.is-missing .tip-entry-time{
+  display:none;
+}
+
+/* Vollbild-Einblendung beim Freischalten */
+.tip-flash{
+  position:fixed;
+  inset:0;
+  z-index:30;
+  padding:
+    max(24px,env(safe-area-inset-top))
+    22px
+    max(24px,env(safe-area-inset-bottom));
+  display:grid;
+  place-items:center;
+  background:rgb(0 0 40 / 52%);
+  backdrop-filter:blur(9px);
+  -webkit-backdrop-filter:blur(9px);
+  opacity:0;
+  pointer-events:none;
+}
+
+.tip-flash.is-visible{
+  animation:tipFlashOverlay 3000ms ease both;
+}
+
+.tip-flash-card{
+  width:min(420px,100%);
+  padding:28px 24px 30px;
+  border:1px solid rgb(255 255 255 / 28%);
+  border-radius:30px;
+  color:#fff;
+  text-align:center;
+  background:linear-gradient(180deg,var(--spicy-top),var(--spicy-bottom));
+  box-shadow:0 24px 60px rgb(0 0 0 / 28%);
+  transform:scale(.92);
+}
+
+.tip-flash.is-visible .tip-flash-card{
+  animation:tipFlashCard 3000ms cubic-bezier(.2,.78,.2,1) both;
+}
+
+.tip-flash-label{
+  margin-bottom:12px;
+  font-family:"Red Hat Display",system-ui,sans-serif;
+  font-size:18px;
+  line-height:1;
+  font-weight:800;
+  opacity:.78;
+}
+
+.tip-flash-text{
+  font-family:"Red Hat Display",system-ui,sans-serif;
+  font-size:clamp(24px,7vw,34px);
+  line-height:1.12;
+  font-weight:800;
+}
+
+@keyframes tipFlashOverlay{
+  0%{opacity:0}
+  10%,82%{opacity:1}
+  100%{opacity:0}
+}
+
+@keyframes tipFlashCard{
+  0%{transform:scale(.92) translateY(8px);opacity:0}
+  12%,82%{transform:scale(1) translateY(0);opacity:1}
+  100%{transform:scale(.98) translateY(-4px);opacity:0}
+}
+
+@media (max-width:390px){
+  .tip-badge{
+    right:-11px;
+    width:50px;
+    height:50px;
+    border-radius:16px;
+  }
+
+  .tip-badge img{
+    width:26px;
+    height:26px;
+  }
+
+  .tip-popover{
+    right:-8px;
+    width:min(292px,calc(100vw - 44px));
+  }
+}

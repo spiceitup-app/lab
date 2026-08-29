@@ -88,6 +88,40 @@
             </div>
           </div>
         </button>
+
+        <button
+          class="tip-badge"
+          id="tipBadge"
+          type="button"
+          aria-label="Tipps öffnen"
+          aria-expanded="false"
+          hidden
+        >
+          <img src="../../Assets/Games/Mystery_Cards_Tipp.svg" alt="" />
+        </button>
+
+        <div class="tip-popover" id="tipPopover" role="dialog" aria-label="Tipps" hidden>
+          <div class="tip-popover-head">
+            <strong>Tipps</strong>
+            <button class="tip-popover-close" id="tipPopoverClose" type="button" aria-label="Tipps schließen">×</button>
+          </div>
+
+          <div class="tip-entry" id="tipEntry1">
+            <div class="tip-entry-head">
+              <strong>Tipp 1</strong>
+              <span class="tip-entry-time" id="tipTime1">00:00</span>
+            </div>
+            <div class="tip-entry-body" id="tipBody1">Noch verborgen</div>
+          </div>
+
+          <div class="tip-entry" id="tipEntry2">
+            <div class="tip-entry-head">
+              <strong>Tipp 2</strong>
+              <span class="tip-entry-time" id="tipTime2">00:00</span>
+            </div>
+            <div class="tip-entry-body" id="tipBody2">Noch verborgen</div>
+          </div>
+        </div>
       </div>
 
       <div class="instruction-row">
@@ -96,6 +130,13 @@
       </div>
     </section>
   </main>
+
+  <div class="tip-flash" id="tipFlash" hidden aria-live="assertive" aria-atomic="true">
+    <div class="tip-flash-card">
+      <div class="tip-flash-label" id="tipFlashLabel">Tipp 1</div>
+      <div class="tip-flash-text" id="tipFlashText"></div>
+    </div>
+  </div>
 
   <div class="sheet-scrim" id="sheetScrim" hidden></div>
   <section class="settings-sheet" id="settingsSheet" aria-hidden="true" aria-label="Spiel-Einstellungen">
@@ -177,12 +218,24 @@
           <span class="toggle-control" aria-hidden="true"></span>
         </label>
       </div>
+
+      <div class="setting-card tips-setting-card">
+        <label class="experimental-toggle">
+          <span class="toggle-copy">
+            <strong>Tipps bekommen</strong>
+            <span>Blendet nach 60 % und 80 % der Kartenzeit zwei hinterlegte Hinweise ein.</span>
+          </span>
+          <input id="tipsToggle" type="checkbox" />
+          <span class="toggle-control" aria-hidden="true"></span>
+        </label>
+      </div>
     </div>
 
     <button class="done-button" id="doneButton" type="button">Fertig</button>
   </section>
 
   <audio id="nextCardSound" preload="auto" src="../../Assets/Games/Mystery_Cards_Next.mp3"></audio>
+  <audio id="tipSound" preload="auto" src="../../Assets/Games/Mystery_Cards_Tipp.mp3"></audio>
 
   <script src="content/spicy-level-1.js"></script>
   <script src="content/spicy-level-2.js"></script>
